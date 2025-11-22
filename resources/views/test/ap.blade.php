@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIGHLINK - Premium Bus Travel in Tanzania</title> 
+    <title>HIGHLINK - Premium Bus Travel in Tanzania</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="shortcut icon" href="{{ asset('ChatGPT Image Jul 7, 2025, 12_18_13 PM.png') }}" type="image/icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -323,7 +323,7 @@
 
         // FAQ accordion
         document.querySelectorAll('.glass-card .flex.items-center').forEach(item => {
-            item.addEventListener('click', function() {
+            item.addEventListener('click', function () {
                 const content = this.nextElementSibling;
                 const icon = this.querySelector('i');
 
@@ -359,7 +359,7 @@
 
         // Smooth scroll for nav links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
+            anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 document.querySelector(this.getAttribute('href')).scrollIntoView({
                     behavior: 'smooth'
@@ -416,7 +416,7 @@
             z-index: 1000;
             /* Adjust as needed */
         }
-    </style> 
+    </style>
     @livewireScripts
 </body>
 

@@ -12,11 +12,11 @@ return [
     'search_bus_schedules' => 'Tafuta Ratiba za Mabasi',
     'one_way' => 'Njia Moja',
     'bus_class' => 'Basi class',
-    'any' => 'zote'.
+    'any' => 'zote',
     'bus_name' => 'Jina la Basi',
     'from' => 'Kutoka',
     'to' => 'Hadi',
-    'bus_class' => 'Bus class','bus_class' => 'Bus class',
+    //'bus_class' => 'Bus class',
     'date' => 'Tarehe',
     'find_buses' => 'Tafuta Mabasi',
     'select_departure_city' => 'Chagua Mji wa Kuondoka',

@@ -1,0 +1,2646 @@
+var stationJSON = "";
+var stationList = [];
+var onwardMaxSeatsBookingAllowed = "";
+var returnMaxSeatsBookingAllowed = "";
+var onwardSelectedSeats = [];
+var onwardSelectedSeatsId = [];
+var onwardSelectedSeatsPrice = [];
+var onwardSelectedSeatsType = [];
+var returnSelectedSeats = [];
+var returnSelectedSeatsId = [];
+var returnSelectedSeatsPrice = [];
+var returnSelectedSeatsType = [];
+var onwardBoardingPointList = "";
+var onwardDroppingPointList = "";
+var onwardBoardingPointRadioList = "";
+var onwardDroppingPointRadioList = "";
+var returnBoardingPointList = "";
+var returnDroppingPointList = "";
+var returnBoardingPointRadioList = "";
+var returnDroppingPointRadioList = "";
+var onwardSection = "";
+var returnSection = "";
+var onwardCurrencyList = "";
+var returnCurrencyList = "";
+var citiesLoaded = 0;
+var isAllowedToChooseDifferentSeatCount = 0;
+var onward_filterTime = [];
+var onward_filterOperator = [];
+var onward_filterType = [];
+var onward_filterAmenities = [];
+var onward_filterBoardingPoint = [];
+var onward_filterDroppingPoint = [];
+var return_filterTime = [];
+var return_filterOperator = [];
+var return_filterType = [];
+var return_filterAmenities = [];
+var return_filterBoardingPoint = [];
+var return_filterDroppingPoint = [];
+var currencyText = "";
+var searchJourneyState = 0;
+var previousSearchJourneyState = 0;
+var previousOnwardStartDate = "";
+var previousReturnStartDate = "";
+var previousOnwardStartStation = "";
+var previousOnwardEndStation = "";
+var maxAllowedTravelDaysForAgent = 0;
+
+function setAndLoadDatePicker() {
+	var todayDate = new Date();
+	var tomorrowDate = new Date();
+	tomorrowDate.setDate(todayDate.getDate() + 1);
+	
+	var maxTravelDate = new Date();
+	maxTravelDate.setDate(maxTravelDate.getDate() + parseInt(maxAllowedTravelDaysForAgent));
+
+	$('#busOnwardJourneyDate').datepicker({
+		dateFormat: 'yy-mm-dd',
+		startDate: '0',
+		orientation: 'bottom',
+		todayBtn: true,
+		autoclose: true,
+		minDate: todayDate,
+		maxDate: maxTravelDate,
+		onSelect: function(selectedDate) {
+			setTimeout(function() {
+				if($('#busOnwardJourneyDate').val() == previousOnwardStartDate) {
+					searchJourneyState = previousSearchJourneyState;
+					returnJourneyDate = previousReturnStartDate;
+
+					var minDate = new Date(selectedDate.replace(/-/g, '\/'));
+					var newDate = new Date(returnJourneyDate.replace(/-/g, '\/'));
+					minDate.setDate(minDate.getDate());
+					newDate.setDate(newDate.getDate());
+
+					$('#busReturnJourneyDate').removeClass("hasDatepicker");
+					$('#busReturnJourneyDate').removeClass("destroy");
+					$('#busReturnJourneyDate').datepicker({
+						dateFormat: 'yy-mm-dd',
+						startDate: minDate,
+						orientation: 'bottom',
+						todayBtn: true,
+						autoclose: true,
+						minDate: minDate,
+						maxDate: maxTravelDate,
+						onSelect: function(selectedDate) {
+							if($("#busTravelDates") && searchJourneyState == 0) {
+								var onwardJourneyDate = $("#busOnwardJourneyDate").val().trim();
+								var returnJourneyDate = $("#busReturnJourneyDate").val().trim();
+
+								$("#busTravelDates").empty();
+								$("#busTravelDates").html("Depature: "+onwardJourneyDate+" | Arrival: "+returnJourneyDate);
+							}
+						}
+					}).datepicker("setDate", newDate);
+				} else {
+					searchJourneyState = 0;
+
+					var minDate = new Date(selectedDate.replace(/-/g, '\/'));
+					var newDate = new Date(selectedDate.replace(/-/g, '\/'));
+					minDate.setDate(minDate.getDate());
+
+					if(maxTravelDate.getDate() == minDate.getDate()) {
+						newDate.setDate(newDate.getDate());
+					} else {
+						newDate.setDate(newDate.getDate()+1);
+					}
+
+					$('#busReturnJourneyDate').removeClass("hasDatepicker");
+					$('#busReturnJourneyDate').removeClass("destroy");
+					$('#busReturnJourneyDate').datepicker({
+						dateFormat: 'yy-mm-dd',
+						startDate: minDate,
+						orientation: 'bottom',
+						todayBtn: true,
+						autoclose: true,
+						minDate: minDate,
+						maxDate: maxTravelDate,
+						onSelect: function(selectedDate) {
+							if($("#busTravelDates") && searchJourneyState == 0) {
+								var onwardJourneyDate = $("#busOnwardJourneyDate").val().trim();
+								var returnJourneyDate = $("#busReturnJourneyDate").val().trim();
+
+								$("#busTravelDates").empty();
+								$("#busTravelDates").html("Depature: "+onwardJourneyDate+" | Arrival: "+returnJourneyDate);
+							}
+						}
+					}).datepicker("setDate", newDate);
+				}
+
+				if($('#busOnwardJourneyDate').val() == previousOnwardStartDate) {
+					$("#busContainer").show();
+
+					if(previousSearchJourneyState == 1) {
+						var onwardJourneyDate = $("#busOnwardJourneyDate").val().trim();
+						var returnJourneyDate = $("#busReturnJourneyDate").val().trim();
+
+						$("#busTravelDates").empty();
+						$("#busTravelDates").html("Depature: "+onwardJourneyDate+" | Arrival: "+returnJourneyDate);
+					}
+				} else {
+					$("#busContainer").hide();
+				}
+			}, 200);
+		}
+	}).datepicker("setDate", "0");
+
+	var minDate = new Date($('#busOnwardJourneyDate').val().replace(/-/g, '\/'));
+	var newDate = new Date($('#busOnwardJourneyDate').val().replace(/-/g, '\/'));
+	newDate.setDate(newDate.getDate()+1);
+	$('#busReturnJourneyDate').datepicker({
+		dateFormat: 'yy-mm-dd',
+		startDate: '0',
+		orientation: 'bottom',
+		todayBtn: true,
+		autoclose: true,
+		minDate: todayDate,
+		maxDate: maxTravelDate,
+		onSelect: function(selectedDate) {
+			if($("#busTravelDates") && searchJourneyState == 0) {
+				var onwardJourneyDate = $("#busOnwardJourneyDate").val().trim();
+				var returnJourneyDate = $("#busReturnJourneyDate").val().trim();
+
+				$("#busTravelDates").empty();
+				$("#busTravelDates").html("Depature: "+onwardJourneyDate+" | Arrival: "+returnJourneyDate);
+			}
+		}
+	}).datepicker("setDate", newDate);
+	
+	$("#busOnwardJourneyDate").trigger("change");
+	$("#busReturnJourneyDate").trigger("change");
+	$(".checkTextChange").addClass("active");
+}
+
+function showReturnBusJourney() {
+	document.getElementById('bus_returnDateContainer').style.display = 'none';
+	//$("#fromBusStation, #busStartStation, #busStartCountry, #busStartStationName, #toBusStation, #busEndStation, #busEndCountry, #busEndStationName").val("");
+	$("#busJourneyType").val("0");
+	$("#busContainer").hide();
+	$('#busOnwardJourneyDate').datepicker("setDate", "0");
+	searchJourneyState = 0;
+	$("#tabCheck").val("1");
+}
+
+function showOnwardBusJourney() {
+	document.getElementById('bus_returnDateContainer').style.display = 'block';
+	//$("#fromBusStation, #busStartStation, #busStartCountry, #busStartStationName, #toBusStation, #busEndStation, #busEndCountry, #busEndStationName").val("");
+	$("#busJourneyType").val("1");
+	$("#busContainer").hide();
+	searchJourneyState = 0;
+	$("#tabCheck").val("2");
+}
+
+function validateSearchParams(selectedOption) {
+	var type = "";
+	var from = $("#fromBusStation").val().trim();
+	var to = $("#toBusStation").val().trim();
+	
+	if($("#tabCheck").val().trim() == 1) {
+		type = "oneway";
+	} else if($("#tabCheck").val().trim() == 2) {
+		type = "twoway";
+    }
+	
+	if(from == "" || to == "" || $("#busStartStation").val().trim() == "" || $("#busEndStation").val().trim() == "") {
+		alert("Please select correct depature and arrival city");
+		return false;
+	}
+
+	
+	if(selectedOption == 0) {
+		$("#busLanding").submit();
+	} else {
+		searchBusForJourney(0);
+	}
+}
+
+$(document).ready(function() {
+	if($('#busOnwardJourneyDate').length != 0) {
+		loadBusStationList();
+		$('.allmenu').show();
+	}
+});
+
+function loadBusStationList() {
+	if(citiesLoaded == 1) {
+		return false;
+	} else {
+		citiesLoaded = 1;
+	}
+	
+	$("#busonward").prop('checked', true);
+	showReturnBusJourney();
+	$("#fromBusStation").val("");
+	$("#busStartStation").val("");
+	$("#busStartCountry").val("");
+	$("#busStartStationName").val("");
+	$('#busContainer').hide();
+	$("#toBusStation").val("");
+	$("#busEndStation").val("");
+	$("#busEndCountry").val("");
+	$("#busEndStationName").val("");
+	$('#busContainer').hide();
+	searchJourneyState = 0;
+	previousOnwardStartStation = "";
+	previousOnwardEndStation = "";
+
+	var data = "key=1";
+	$("#busBackground").show();
+
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_loadBusStationList",
+		data: data,
+		success: function(response) {
+			$("#busBackground,).hide();
+			response = JSON.parse(response);
+
+			if(response["status"] == 200) {
+				stationJSON = response["stations"];
+				maxAllowedTravelDaysForAgent = response["max_no_of_travel_days"];
+				
+				if(response["is_return_enabled"] == 0) {
+					$("#returnOption").hide();
+				} else if(response["is_return_enabled"] == 1) {
+					$("#returnOption").show();
+				}
+				setAndLoadDatePicker();
+
+				for(i = 0; i < stationJSON.length; i++) {
+					stationList[i] = {"label": stationJSON[i]["stn_long_name"], "value": stationJSON[i]["stn_long_name"] + " (" + stationJSON[i]["stn_short_name"] + "), "+ stationJSON[i]["stn_country_name"], "cityname": stationJSON[i]["stn_long_name"], "cityshortname": stationJSON[i]["stn_short_name"], "countryname": stationJSON[i]["stn_country_name"], "citystationid": stationJSON[i]["stn_id"], "countrystationid": stationJSON[i]["snt_country_id"]};
+				}
+
+				function loadCity(request, response) {
+					function hasMatch(s) {
+						return s.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
+					}
+					var i, len, obj, matches = [];
+
+					if(request.term === "") {
+						response([]);
+						return;
+					}
+
+					for(i = 0, len = stationList.length; i < len; i++) {
+						obj = stationList[i];
+						if (hasMatch(obj.cityname)) {
+							matches.push(obj);
+						}
+					}
+
+					for(i = 0, len = stationList.length; i < len; i++) {
+						obj = stationList[i];
+
+						if (hasMatch(obj.cityshortname)) {
+							var exists = false;
+							for(j = 0; j < matches.length; j++) {
+								if(matches[j].cityname == obj.cityname) {
+									exists = true;
+								}
+							}
+
+							if(exists == false) {
+								matches.push(obj);
+							}
+						}
+					}
+
+					response(matches);
+				}
+
+				jQuery("#fromBusStation").autocomplete({
+					source: loadCity,
+					select: function(event, ui) {
+						$("#busStartStation").val(ui.item.citystationid);
+						$("#busStartCountry").val(ui.item.countrystationid);
+						$("#busStartStationName").val(ui.item.cityname);
+						$('#busContainer').hide();
+						previousOnwardStartStation = $("#fromBusStation").val();
+                        setTimeout(function(){$('#toBusStation').focus()},5);
+						if($("#busStartStation").val() == $("#busEndStation").val() && $("#busStartCountry").val() == $("#busEndCountry").val()) {
+							$("#fromBusStation").val("");
+							$("#busStartStation").val("");
+							$("#busStartCountry").val("");
+							$("#busStartStationName").val("");
+							$('#busContainer').hide();
+							previousOnwardStartStation = "";
+							alert("From Bus Station and To Bus Station cannot be same.");
+						}	
+					}
+				}).data("ui-autocomplete")._renderItem = function(ul, item) {
+					return $("<li></li>")
+					.data("item.autocomplete", item)
+					.append("<div style='margin: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'><div>"+item.cityname+" ("+item.cityshortname+"), "+item.countryname+"</div></div>")
+					.appendTo(ul);
+				};
+
+				jQuery("#toBusStation").autocomplete({
+					source: loadCity,
+					select: function(event, ui) {
+						$("#busEndStation").val(ui.item.citystationid);
+						$("#busEndCountry").val(ui.item.countrystationid);
+						$("#busEndStationName").val(ui.item.cityname);
+						$('#busContainer').hide();
+						previousOnwardEndStation = $("#toBusStation").val();
+                        setTimeout(function(){$('#busOnwardJourneyDate').focus()},5);
+						if($("#busStartStation").val() == $("#busEndStation").val() && $("#busStartCountry").val() == $("#busEndCountry").val()) {
+							$("#toBusStation").val("");
+							$("#busEndStation").val("");
+							$("#busEndCountry").val("");
+							$("#busEndStationName").val("");
+							$('#busContainer').hide();
+							previousOnwardEndStation = "";
+							alert("From Bus Station and To Bus Station cannot be same.");
+						}
+					}
+				}).data("ui-autocomplete")._renderItem = function(ul, item) {
+					return $("<li></li>")
+					.data("item.autocomplete", item)
+					.append("<div style='margin: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'><div>"+item.cityname+" ("+item.cityshortname+"), "+item.countryname+"</div></div>")
+					.appendTo(ul);
+				};
+				
+				$(".destination").bind("keypress keyup keydown", function (event) {
+					var evtType = event.type;
+					var eWhich = event.which;
+					var echarCode = event.charCode;
+					var ekeyCode = event.keyCode;
+					var selectedId = this.id;
+					var idForShortSearch = "";
+					
+					if(selectedId == "fromBusStation") {
+						idForShortSearch = previousOnwardStartStation;
+					} else {
+						idForShortSearch = previousOnwardEndStation;
+					}
+					
+					if($("#"+selectedId).val().trim().length <= 2) {
+						if(selectedId == "fromBusStation") {
+							clearFromBusStation(0);
+						} else if(selectedId == "toBusStation") {
+							clearToBusStation(0);
+						}
+					}
+
+					switch (evtType) {
+						case 'keypress':
+							if(idForShortSearch != "") {
+								if(ekeyCode == 8 || ekeyCode == 32 || echarCode == 8 || echarCode == 32) {
+									if(selectedId == "fromBusStation") {
+										clearFromBusStation(1);
+									} else {
+										clearToBusStation(1);
+									}
+									event.preventDefault();
+								}
+							}
+							break;
+						case 'keyup':
+							if(idForShortSearch != "") {
+								if(ekeyCode == 8 || ekeyCode == 32 || echarCode == 8 || echarCode == 32) {
+									if(selectedId == "fromBusStation") {
+										clearFromBusStation(1);
+									} else {
+										clearToBusStation(1);
+									}
+									event.preventDefault();
+								}
+							}
+							break;
+						case 'keydown':
+							if(idForShortSearch != "") {
+								if(ekeyCode == 8 || ekeyCode == 32 || echarCode == 8 || echarCode == 32) {
+									if(selectedId == "fromBusStation") {
+										clearFromBusStation(1);
+									} else {
+										clearToBusStation(1);
+									}
+									event.preventDefault();
+								}
+							}
+							break;
+						default:
+							break;
+					}
+				});
+
+				/*
+				jQuery('#fromBusStation').on('input', function() {
+					if(previousOnwardStartStation != "") {
+						$("#fromBusStation").val("");
+						$("#busStartStation").val("");
+						$("#busStartCountry").val("");
+						$("#busStartStationName").val("");
+						$('#busContainer').hide();
+						searchJourneyState = 0;
+						previousOnwardStartStation = "";
+					}
+				});
+
+				jQuery('#toBusStation').on('input', function() {
+					if(previousOnwardEndStation != "") {
+						$("#toBusStation").val("");
+						$("#busEndStation").val("");
+						$("#busEndCountry").val("");
+						$("#busEndStationName").val("");
+						$('#busContainer').hide();
+						searchJourneyState = 0;
+						previousOnwardEndStation = "";
+					}
+				});
+				*/
+				
+				function clearFromBusStation(type) {
+					if(type == 1) {
+						$("#fromBusStation").val("");
+					}
+					$("#busStartStation").val("");
+					$("#busStartCountry").val("");
+					$("#busStartStationName").val("");
+					$('#busContainer').hide();
+					searchJourneyState = 0;
+					previousOnwardStartStation = "";
+				}
+				
+				function clearToBusStation(type) {
+					if(type == 1) {
+						$("#toBusStation").val("");
+					}
+					$("#busEndStation").val("");
+					$("#busEndCountry").val("");
+					$("#busEndStationName").val("");
+					$('#busContainer').hide();
+					searchJourneyState = 0;
+					previousOnwardEndStation = "";
+				}
+				
+				if(typeof checkSearchRequest !== 'undefined' && typeof checkSearchRequest === 'function') {
+					checkSearchRequest();
+				}
+			} else {
+				stationList = "";
+			}
+		}
+	});
+}
+
+function searchBusForJourney(journeyState) {
+	var fromStation = $("#busStartStation").val().trim();
+	var toStation = $("#busEndStation").val().trim();
+	var fromCountry = $("#busStartCountry").val().trim();
+	var toCountry = $("#busEndCountry").val().trim();
+	var onwardJourneyDate = $("#busOnwardJourneyDate").val().trim();
+	var returnJourneyDate = $("#busReturnJourneyDate").val().trim();
+	var journeyType = $("#busJourneyType").val().trim();
+	var fromStationName = $("#busStartStationName").val().trim();
+	var toStationName = $("#busEndStationName").val().trim();
+	
+	if(fromStation.length == "" || $("#fromBusStation").val().trim().length == 0 || toStation.length == 0 || $("#toBusStation").val().trim().length == 0) {
+		alert("Please check your depature and arrival destination and try again.");
+		return false;
+	}
+	
+	if(fromStation == toStation && fromCountry == toCountry) {
+		alert("From Bus Station and To Bus Station cannot be same.");
+		return false;
+	}
+	
+	if(journeyType == 1) {
+		var tempOnwardJourneyDate = new Date(onwardJourneyDate.replace(/-/g,'/'));
+		var tempReturnJourneyDate = new Date(returnJourneyDate.replace(/-/g,'/'));
+		
+		if(tempOnwardJourneyDate > tempReturnJourneyDate) {
+			alert("Please check your depature and arrival dates and try again.");
+			return false;
+		}
+		
+		if(searchJourneyState == 1) {
+			/*
+			var selectedBusArrivalDateTemp = $("#arrDate_0_"+onwardSection).val().trim().split("-");
+			var selectedBusArrivalDate = selectedBusArrivalDateTemp[0] + "/" + selectedBusArrivalDateTemp[1] + "/" + selectedBusArrivalDateTemp[2];
+			*/
+			
+			var selectedBusArrivalDate = $("#arrDate_0_"+onwardSection).val().trim();
+			selectedBusArrivalDate = new Date(selectedBusArrivalDate.replace(/-/g,'/'));
+			journeyState = 1;
+			
+			if(selectedBusArrivalDate >= tempReturnJourneyDate) {
+				$("#allBusListContainer").hide();
+				$("#noBusFoundOnFilter").show();
+				$("#returnBusSearchContainer").hide();
+				$("#busDiagText").empty();
+				$("#busDiagText").html("Your selected return date is before the arrival date of your selected bus. Please choose another bus or change your arrival date.");
+				var set = 3;
+				journeyType = 0;
+				
+				$("#busDiagContainer").dialog({
+					resizable: false,
+					height: "auto",
+					maxWidth: 625,
+					width: "90%",
+					modal: true,
+					fluid: true,
+					dialogClass: "no-titlebar",
+					buttons: {
+						"Choose another date": function() {
+							$(this).dialog("close");
+							$('html, body').animate({
+								scrollTop: $("#busonward").offset().top
+							}, 500);
+						},
+						"Skip and book for One Way": function() {
+							var key = encrypt(jsrd, journeyType+""+set+srd+rd);
+							var data = "journeyType="+journeyType+"&set="+set+"&key="+key;
+							$(this).dialog("close");
+							$("#busBackground,).show();
+							
+							$.ajax({
+								type: "POST",
+								url: "bus/bus_verifyValues",
+								data: data,
+								success: function(response) {
+									$("#busBackground,).hide();
+									response = JSON.parse(response);
+									if(response["status"] == 200) {
+										confirmBooking(0, 0, onwardSection);
+									}
+								}
+							});
+						},
+						Cancel: function() {
+							$(this).dialog("close");
+						}
+					},
+					create: function (event, ui) {
+						$(".ui-dialog-titlebar button").hide();
+						$("#busDiagContainer").css('height', "auto");
+					}
+				});
+				
+				return false;
+			} else {
+				$("#allBusListContainer").show();
+				$("#noBusFoundOnFilter").hide();
+			}
+		}
+	}
+	
+	previousOnwardStartDate = onwardJourneyDate;
+	previousReturnStartDate = returnJourneyDate;
+	previousSearchJourneyState = journeyState;
+	previousOnwardStartStation = $("#fromBusStation").val();
+	previousOnwardEndStation = $("#toBusStation").val();
+	
+	if(journeyState == 0) {
+		$("#onwardBusSearchContainer").empty();
+		$("#busStartOnwardStation").empty();
+		$("#busEndOnwardStation").empty();
+		$("#busTravelDates").empty();
+		$("#busTravelDirection").empty();
+		$("#selectedBusSearchContainer").empty();
+		$("#returnBusSearchContainer").empty();
+		$('#busContainer').hide();
+		$("#onwardBusSearchContainer").show();
+		$("#selectedBusSearchContainer").hide();
+		$("#returnBusSearchContainer").hide();
+		$("#busFilterTime").empty();
+		$("#busFilterOperator").empty();
+		$("#busFilterPickup").empty();
+		$("#busFilterDrop").empty();
+		$("#busFilterType").empty();
+		$('#busFilterAmenities').empty();
+	} else if(journeyState == 1) {
+		$("#returnBusSearchContainer").empty();
+		$("#onwardBusSearchContainer").hide();
+		$("#returnBusSearchContainer").hide();
+		
+		if(searchJourneyState == 0) {
+			$("#selectedBusSearchContainer").empty();
+			$("#selectedBusSearchContainer").hide();
+		}
+	}
+	
+	var key = encrypt(jsrd, fromStation+""+toStation+""+fromCountry+""+toCountry+onwardJourneyDate+returnJourneyDate+journeyType+fromStationName+toStationName+journeyState+srd+rd);
+	var data = "fromStation="+fromStation+"&toStation="+toStation+"&fromCountry="+fromCountry+"&toCountry="+toCountry+"&onwardJourneyDate="+onwardJourneyDate+"&returnJourneyDate="+returnJourneyDate+"&journeyType="+journeyType+"&key="+key+"&fromStationName="+fromStationName+"&toStationName="+toStationName+"&journeyState="+journeyState;
+	
+	$("#busBackground,).show();
+	
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_searchBusStation",
+		data: data,
+		success: function(response) {
+			$("#busBackground,).hide();
+			response = JSON.parse(response);
+			if(response["status"] == 200) {
+				if(journeyState == 0) {
+					$("#onwardBusSearchContainer").html(response["busList"]);
+					onwardBoardingPointList = response["boardingPointOption"];
+					onwardDroppingPointList = response["droppingPointOption"];
+					onwardBoardingPointRadioList = response["boardingPointRadio"];
+					onwardDroppingPointRadioList = response["droppingPointRadio"];
+					onwardCurrencyList = response["availableCurrencyList"];
+					$("#busFilterTime").html(response["filterBusTimeings"]);
+					$("#busFilterOperator").html(response["filterBusOperator"]);
+					$("#busFilterPickup").html(response["filterBoardingPoint"]);
+					$("#busFilterDrop").html(response["filterDroppingPoint"]);
+					$("#busFilterAmenities").html(response["filterBusAmenities"]);
+					$("#busFilterType").html(response["filterBusType"]);
+					
+					$('#busContainer').show();
+					$("#allBusListContainer").show();
+					$("#noBusFound").hide();
+					//$(".select_dropdown").formSelect();
+					applyBusFilters();
+				} else if(journeyState == 1) {
+					$("#returnBusSearchContainer").html(response["busList"]);
+					$("#selectedBusSearchContainer").show();
+					$("#returnBusSearchContainer").show();
+					
+					returnBoardingPointList = response["boardingPointOption"];
+					returnDroppingPointList = response["droppingPointOption"];
+					returnBoardingPointRadioList = response["boardingPointRadio"];
+					returnDroppingPointRadioList = response["droppingPointRadio"];
+					returnCurrencyList = response["availableCurrencyList"];
+					//$(".select_dropdown").formSelect();
+					applyBusFilters();
+					
+					$('html, body').animate({
+						scrollTop: $("#busContainer").offset().top
+					}, 500);
+				}
+			} else {
+				if(journeyState == 0) {
+					$("#allBusListContainer").hide();
+					$("#noBusFound").show();
+					alert("No buses available for the selected date and route. Please change your filters and try again.");
+					// window.location.href = "https://www.bmcoach.co.tz/";
+				}
+				
+				if(journeyState == 1) {
+					$("#returnBusSearchContainer").hide();
+					$("#allBusListContainer").hide();
+					$("#noBusFoundOnFilter").show();
+					$("#busDiagText").empty();
+					$("#busDiagText").html("Your selected return date is before the arrival date of your selected bus. Please choose another bus or change your arrival date.");
+					var set = 3;
+					journeyType = 0;
+					
+					$("#busDiagContainer").dialog({
+						resizable: false,
+						height: "auto",
+						maxWidth: 625,
+						width: "90%",
+						modal: true,
+						fluid: true,
+						dialogClass: "no-titlebar",
+						buttons: {
+							"Choose another date": function() {
+								$(this).dialog("close");
+								$('html, body').animate({
+									scrollTop: $("#busonward").offset().top
+								}, 500);
+							},
+							"Skip and book for One Way": function() {
+								var key = encrypt(jsrd, journeyType+""+set+srd+rd);
+								var data = "journeyType="+journeyType+"&set="+set+"&key="+key;
+								$(this).dialog("close");
+								$("#busBackground,).show();
+								
+								$.ajax({
+									type: "POST",
+									url: "bus/bus_verifyValues",
+									data: data,
+									success: function(response) {
+										$("#busBackground,).hide();
+										response = JSON.parse(response);
+										if(response["status"] == 200) {
+											confirmBooking(0, 0, onwardSection);
+										}
+									}
+								});
+							},
+							Cancel: function() {
+								$(this).dialog("close");
+							}
+						},
+						create: function (event, ui) {
+							$(".ui-dialog-titlebar button").hide();
+							$("#busDiagContainer").css('height', "auto");
+						}
+					});
+				}
+			}
+		}
+	});
+}
+
+function addRemoveFilter(id, value, imgid) {
+	if($("#"+id).val() == "") {
+		$("#"+id).val(value);
+		$("#"+imgid).prop('src', 'images/bus/filter/'+value+'_selected.png');
+	} else {
+		$("#"+id).val("");
+		$("#"+imgid).prop('src', 'images/bus/filter/'+value+'_normal.png');
+	}
+	
+	applyBusFilters();
+}
+
+function applyBusFilters() {
+	$("#allBusListContainer").show();
+	$(".bustype_all").hide();
+	var timeArray = [];
+	var amenitiesArray = [];
+	var busTypeArray = [];
+	var busOperatorArray = [];
+	var droppingPointArray = [];
+	var boardingPointArray = [];
+	var i = 0;
+	var j = 0;
+	var k = 0;
+	var l = 0;
+	var m = 0;
+	var n = 0;
+
+	timeArray.push($('#busFilterTime').val());
+	
+	if($('#busFilterAmenities').val()!="")
+		amenitiesArray.push($('#busFilterAmenities').val());
+
+	busTypeArray.push($('#busFilterType').val());
+
+	busOperatorArray.push($('#busFilterOperator').val());
+
+	boardingPointArray.push($('#busFilterPickup').val());
+
+	droppingPointArray.push($('#busFilterDrop').val());
+
+	if(timeArray.length == 0) {
+		timeArray[0] = "time_all";
+	}
+
+	if(busTypeArray.length == 0) {
+		busTypeArray[0] = "bustype_all";
+	}
+
+	if(busOperatorArray.length == 0) {
+		busOperatorArray[0] = "operator_all";
+	}
+
+	if(boardingPointArray.length == 0) {
+		boardingPointArray[0] = "boardingPoint_all";
+	}
+
+	if(droppingPointArray.length == 0) {
+		droppingPointArray[0] = "droppingPoint_all";
+	}
+
+	for(i = 0; i < timeArray.length; i++) {
+		var tempClassList = "."+timeArray[i];
+
+		for(j = 0; j < amenitiesArray.length; j++) {
+			tempClassList = tempClassList+"."+amenitiesArray[j];
+		}
+		for(k = 0; k < busTypeArray.length; k++) {
+			var classList = tempClassList;
+			classList = classList+"."+busTypeArray[k];
+			for(l = 0; l < busOperatorArray.length; l++) {
+				classList = classList+"."+busOperatorArray[l];
+
+				for(m = 0; m < boardingPointArray.length; m++) {
+					classList = classList+"."+boardingPointArray[m];
+
+					for(n = 0; n < droppingPointArray.length; n++) {
+						classList = classList+"."+droppingPointArray[n];
+						$(classList).show();
+					}
+				}
+			}
+		}
+	}
+	
+	if(searchJourneyState == 0) {
+		if($("#onwardBusSearchContainer .filters:visible").length === 0) {
+			$("#allBusListContainer").hide();
+			$("#noBusFoundOnFilter").show();
+			$("#noBusFoundOption").hide();
+		} else {
+			$("#noBusFoundOnFilter").hide();
+		}
+	}
+	
+	if(searchJourneyState == 1) {
+		var sectionId = "";
+		var cur_id = "currency_1_"+$("#cur_id_0_"+onwardSection).val().trim();
+		$("#returnBusSearchContainer .filters").each(function() {
+			if(!$(this).hasClass(cur_id)) {
+				sectionId = this.id.split("_");
+				$(".currencyAvailable_1_"+sectionId[sectionId.length - 1]).hide();
+				$(".currencyNotAvailable_1_"+sectionId[sectionId.length - 1]).show();
+				$("#busSection_1_"+sectionId[sectionId.length - 1]).hide();
+			}
+		});
+					
+		if($("#returnBusSearchContainer .filters:visible").length === 0) {
+			$("#allBusListContainer").hide();
+			$("#noBusFoundOnFilter").show();
+			$("#noBusFoundOption").show();
+		} else {
+			$("#noBusFoundOnFilter").hide();
+		}
+	}
+}
+
+function checkCurrency(journeyType, journeyState, section) {
+	if(journeyType == 1 && journeyState == 0) {
+		/*
+		var selectedBusArrivalDateTemp = $("#arrDate_0_"+section).val().trim().split("-");
+		var selectedBusArrivalDate = selectedBusArrivalDateTemp[0] + "/" + selectedBusArrivalDateTemp[1] + "/" + selectedBusArrivalDateTemp[2];
+		*/
+		
+		var selectedBusArrivalDate = $("#arrDate_0_"+section).val().trim();
+		var returnJourneyDate = $("#busReturnJourneyDate").val().trim();
+		
+		selectedBusArrivalDate = new Date(selectedBusArrivalDate.replace(/-/g,'/'));
+		returnJourneyDate = new Date(returnJourneyDate.replace(/-/g,'/'));
+			
+		if(selectedBusArrivalDate >= returnJourneyDate) {
+			$("#busDiagText").empty();
+			$("#busDiagText").html("Your selected return date is before the arrival date of your selected bus. Please choose another bus or change you arrival date.");
+			var set = 3;
+			journeyType = 0;
+			
+			$("#busDiagContainer").dialog({
+				resizable: false,
+				height: "auto",
+				maxWidth: 625,
+				width: "90%",
+				modal: true,
+				fluid: true,
+				dialogClass: "no-titlebar",
+				buttons: {
+					"Choose another date": function() {
+						$(this).dialog("close");
+						$('html, body').animate({
+							scrollTop: $("#busonward").offset().top
+						}, 500);
+						return false;
+					},
+					"Skip and book for One Way": function() {
+						var key = encrypt(jsrd, journeyType+""+set+srd+rd);
+						var data = "journeyType="+journeyType+"&set="+set+"&key="+key;
+						$("#busBackground,).show();
+						
+						$.ajax({
+							type: "POST",
+							url: "bus/bus_verifyValues",
+							data: data,
+							success: function(response) {
+								$("#busBackground,).hide();
+								response = JSON.parse(response);
+								if(response["status"] == 200) {
+									completeCurrencyCheck(journeyType, journeyState, section);
+								}
+							}
+						});
+						
+						$(this).dialog("close");
+					},
+					Cancel: function() {
+						$(this).dialog("close");
+						return false;
+					}
+				},
+				create: function (event, ui) {
+					$(".ui-dialog-titlebar button").hide();
+					$("#busDiagContainer").css('height', "auto");
+				}
+			});
+		} else {
+			completeCurrencyCheck(journeyType, journeyState, section);
+		}
+	} else {
+		completeCurrencyCheck(journeyType, journeyState, section);
+	}
+}
+
+function completeCurrencyCheck(journeyType, journeyState, section) {
+	var cur_count = $("#cur_count_"+journeyState+"_"+section).val().trim();
+	
+	if(journeyState == 1) {
+		var currencyFound = 0;
+		var onwardCurrency = $("#cur_id_0_"+onwardSection).val().trim();
+		
+		for(i = 0; i < returnCurrencyList[section].length; i++) {
+			if(onwardCurrency == returnCurrencyList[section][i]["cur_id"]) {
+				$("#cur_id_"+journeyState+"_"+section).val(onwardCurrency);
+				currencyFound = 1;
+				break;
+			}
+		}
+		
+		if(currencyFound == 0) {
+			//alert("This bus does not support the selected currency for onward journey. Please choose a different bus.");
+			$("#busDiagText").empty();
+			$("#busDiagText").html("This bus does not support the selected currency ("+currencyText+"). Please choose a different bus.");
+			var set = 3;
+			journeyType = 0;
+			
+			$("#busDiagContainer").dialog({
+				resizable: false,
+				height: 175,
+				width: 625,
+				modal: true,
+				dialogClass: "no-titlebar",
+				buttons: {
+					"Choose another Bus": function() {
+						$(this).dialog("close");
+					},
+					"Skip and book for One Way": function() {
+						var key = encrypt(jsrd, journeyType+""+set+srd+rd);
+						var data = "journeyType="+journeyType+"&set="+set+"&key="+key;
+						$(this).dialog("close");
+						$("#busBackground,).show();
+						
+						$.ajax({
+							type: "POST",
+							url: "bus/bus_verifyValues",
+							data: data,
+							success: function(response) {
+								$("#busBackground,).hide();
+								response = JSON.parse(response);
+								if(response["status"] == 200) {
+									confirmBooking(0, 0, onwardSection);
+								}
+							}
+						});
+					},
+					Cancel: function() {
+						$(this).dialog("close");
+					}
+				},
+				create: function (event, ui) {
+					$(".ui-dialog-titlebar button").hide();
+					$("#busDiagContainer").css('height', "auto");
+				}
+			});
+			
+			return false;
+		}
+	}
+	
+	if(cur_count > 1 && journeyState == 0) {
+		$("#currency_popup_"+journeyState+"_"+section).modal('show');
+	} else {
+		loadBusSeatMap(journeyType, journeyState, section, 0);
+	}
+}
+
+function selectCurrency(journeyState, section) {
+	var currency = $("#currency_"+journeyState+"_"+section).val();
+	currencyText = $("#currency_"+journeyState+"_"+section).text();
+	
+	if(currency != "") {
+		$("#cur_id_"+journeyState+"_"+section).val(currency);
+	}
+}
+
+function closeModal(section) {
+	$("#"+section).modal('hide');
+}
+
+function loadBusSeatMap(journeyType, journeyState, section, currencyStateChange) {
+	if($("#seatMap_"+journeyState+"_"+section).html() != "" && $("#seatMap_"+journeyState+"_"+section).is(":visible")) {
+		if(currencyStateChange == 0) {
+			return false;
+		}
+	}
+	
+	var sub_id = $("#sub_id_"+journeyState+"_"+section).val().trim();
+	var tdi_id = $("#tdi_id_"+journeyState+"_"+section).val().trim();
+	var lb_id = $("#lb_id_"+journeyState+"_"+section).val().trim();
+	var responsekey = $("#responsekey_"+journeyState+"_"+section).val().trim();
+	var pbi_id = $("#pbi_id_"+journeyState+"_"+section).val().trim();
+	var asi_id = $("#asi_id_"+journeyState+"_"+section).val().trim();
+	var cur_count = $("#cur_count_"+journeyState+"_"+section).val().trim();
+	var cur_id = $("#cur_id_"+journeyState+"_"+section).val().trim();
+	var precur_id = $("#precur_id_"+journeyState+"_"+section).val().trim();
+	var sleeper = $("#sleeper_"+journeyState+"_"+section).val().trim();
+	var doubledecker = $("#doubledecker_"+journeyState+"_"+section).val().trim();
+	
+	if(cur_count > 1) {
+		if(journeyState == 0) {
+			if($("#currency_"+journeyState+"_"+section).val().trim() == "") {
+				alert("Please select correct currency to proceed.");
+				return false;
+			} else {
+				cur_id = $("#currency_"+journeyState+"_"+section).val().trim();
+				
+				if($("#seatMap_"+journeyState+"_"+section).html() != "" && $("#seatMap_"+journeyState+"_"+section).is(":visible")) {
+					if(precur_id == cur_id) {
+						$("#currency_popup_"+journeyState+"_"+section).modal("close");
+						return false;
+					}
+				}
+				
+				$("#cur_id_"+journeyState+"_"+section).val(cur_id);
+				$("#precur_id_"+journeyState+"_"+section).val(cur_id);
+				$("#currency_popup_"+journeyState+"_"+section).modal("close");
+			}
+		} else {
+			$("#currency_"+journeyState+"_"+section).val($("#cur_id_0_"+onwardSection).val());
+			cur_id = $("#currency_"+journeyState+"_"+section).val().trim();
+			$("#cur_id_"+journeyState+"_"+section).val(cur_id);
+			$("#precur_id_"+journeyState+"_"+section).val(cur_id);
+		}
+	}
+	
+	$("#seatMap_"+journeyState+"_"+section).empty();
+	if(journeyState == 0) {
+		onwardSelectedSeats = [];
+		onwardSelectedSeatsId = [];
+		onwardSelectedSeatsPrice = [];
+		onwardSelectedSeatsType = [];
+	} else {
+		returnSelectedSeats = [];
+		returnSelectedSeatsId = [];
+		returnSelectedSeatsPrice = [];
+		returnSelectedSeatsType = [];
+	}
+	
+	var key = encrypt(jsrd, sub_id+tdi_id+lb_id+responsekey+pbi_id+asi_id+cur_id+cur_count+sleeper+doubledecker+section+journeyType+journeyState+srd+rd);
+	var data = "sub_id="+sub_id+"&tdi_id="+tdi_id+"&lb_id="+lb_id+"&responsekey="+responsekey+"&pbi_id="+pbi_id+"&asi_id="+asi_id+"&cur_id="+cur_id+"&cur_count="+cur_count+"&sleeper="+sleeper+"&doubledecker="+doubledecker+"&section="+section+"&journeyType="+journeyType+"&journeyState="+journeyState+"&key="+key;
+	
+	$("#busBackground,).show();
+	
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_fetchSeatLayout",
+		data: data,
+		success: function(response) {
+			$("#busBackground,).hide();
+			response = JSON.parse(response);
+			if(response["status"] == 200) {
+				$("#seatMap_"+journeyState+"_"+section).html(response["seatMap"]);
+				$(".seatMapContainer_"+journeyState).hide();
+				$("#seatMap_"+journeyState+"_"+section).show();
+				isAllowedToChooseDifferentSeatCount = response["isAllowedToChooseDifferentSeatCount"];
+				
+				if(journeyState == 0) {
+					$("#boarding_option_"+journeyState+"_0_"+section).append(onwardBoardingPointList[section]);
+					$("#dropping_option_"+journeyState+"_1_"+section).append(onwardDroppingPointList[section]);
+					$("#pointsTabContent_"+journeyState+"_0_"+section).append(onwardBoardingPointRadioList[section]);
+					$("#pointsTabContent_"+journeyState+"_1_"+section).append(onwardDroppingPointRadioList[section]);
+					onwardMaxSeatsBookingAllowed = response["maxBookingsAllowed"];
+				} else if(journeyState == 1) {
+					$("#boarding_option_"+journeyState+"_0_"+section).append(returnBoardingPointList[section]);
+					$("#dropping_option_"+journeyState+"_1_"+section).append(returnDroppingPointList[section]);
+					$("#pointsTabContent_"+journeyState+"_0_"+section).append(returnBoardingPointRadioList[section]);
+					$("#pointsTabContent_"+journeyState+"_1_"+section).append(returnDroppingPointRadioList[section]);
+					returnMaxSeatsBookingAllowed = response["maxBookingsAllowed"];
+				}
+				
+				$("#boarding_option_"+journeyState+"_0_"+section).val($("input:radio[name=boarding_radio_"+journeyState+"_0_"+section+"]:checked").val());
+				$("#dropping_option_"+journeyState+"_1_"+section).val($("input:radio[name=dropping_radio_"+journeyState+"_1_"+section+"]:checked").val());
+				
+				if(cur_count > 1) {
+					var selectedCurr = $("#currency_"+journeyState+"_"+section+" option:selected").text();
+					$("#total_amount_"+journeyState+"_"+section).html(selectedCurr+". 0.00");
+				} else {
+					if(journeyState == 0) {
+						$("#total_amount_"+journeyState+"_"+section).html(onwardCurrencyList[section][0]["cur_name"]+". 0");
+					} else {
+						$("#total_amount_"+journeyState+"_"+section).html(returnCurrencyList[section][0]["cur_name"]+". 0");
+					}
+				}
+				
+				/*
+				$('tr').filter(function(){
+					return $(this).find('td').length == $(this).find('td:empty').length;
+				}).hide();
+				*/
+				
+				$('html, body').animate({
+					scrollTop: $("#busSection_"+journeyState+"_"+section).offset().top
+				}, 500);
+			} else {
+				alert("Oops! Could not load seat map. Please try again or choose a different bus.");
+			}
+		}
+	});
+}
+
+function showHidePickUpDropPoints(selectedBus) {
+	$("#"+selectedBus).toggle("fast");
+}
+
+function changePickupDropPointRadio(journeyState, changeLocation, section) {
+	if(changeLocation == 0) {
+		var pointName = $("input:radio[name='boarding_radio_"+journeyState+"_0_"+section+"']:checked").val();
+		$("#boarding_option_"+journeyState+"_0_"+section).val(pointName);
+		$("#droppingText_"+journeyState+"_0_"+section).html(pointName);
+	} else if(changeLocation == 1) {
+		var pointName = $("input:radio[name='dropping_radio_"+journeyState+"_1_"+section+"']:checked").val();
+		$("#dropping_option_"+journeyState+"_1_"+section).val(pointName);
+		$("#boardingText_"+journeyState+"_1_"+section).html(pointName);
+	}
+}
+
+function changePickupDropPointOption(journeyState, changeLocation, section) {
+	if(changeLocation == 0) {
+		var pointName = $("#boarding_option_"+journeyState+"_0_"+section).val();
+		$("input[name='boarding_radio_"+journeyState+"_0_"+section+"'][value='"+pointName+"']").prop('checked', true);
+		$("#droppingText_"+journeyState+"_0_"+section).html(pointName);
+	} else if(changeLocation == 1) {
+		var pointName = $("#dropping_option_"+journeyState+"_1_"+section).val();
+		$("input[name='dropping_radio_"+journeyState+"_1_"+section+"'][value='"+pointName+"']").prop('checked', true);
+		$("#boardingText_"+journeyState+"_1_"+section).html(pointName);
+	}
+}
+
+function busSeatMapTabs(journeyState, section, tabs) {
+	if(tabs == 0) {
+		$("#seatLayout_"+journeyState+"_"+section).show();
+		$("#cancellation_"+journeyState+"_"+section).hide();
+	} else {
+		$("#cancellation_"+journeyState+"_"+section).show();
+		$("#seatLayout_"+journeyState+"_"+section).hide();
+	}
+}
+
+function confirmBooking(journeyType, journeyState, section) {
+	if(journeyType == 1 && journeyState == 0) {
+		var selectedBusArrivalDate = $("#arrDate_0_"+section).val().trim();
+		var returnJourneyDate = $("#busReturnJourneyDate").val().trim();
+		
+		selectedBusArrivalDate = new Date(selectedBusArrivalDate.replace(/-/g,'/'));
+		returnJourneyDate = new Date(returnJourneyDate.replace(/-/g,'/'));
+			
+		if(selectedBusArrivalDate >= returnJourneyDate) {
+			$("#busDiagText").empty();
+			$("#busDiagText").html("Your selected return date is before the arrival date of your selected bus. Please choose another bus or change you arrival date.");
+			var set = 3;
+			journeyType = 0;
+			
+			$("#busDiagContainer").dialog({
+				resizable: false,
+				height: "auto",
+				maxWidth: 625,
+				width: "90%",
+				modal: true,
+				fluid: true,
+				dialogClass: "no-titlebar",
+				buttons: {
+					"Choose another date": function() {
+						$(this).dialog("close");
+						$('html, body').animate({
+							scrollTop: $("#busonward").offset().top
+						}, 500);
+						return false;
+					},
+					"Skip and book for One Way": function() {
+						var key = encrypt(jsrd, journeyType+""+set+srd+rd);
+						var data = "journeyType="+journeyType+"&set="+set+"&key="+key;
+						$("#busBackground,).show();
+						
+						$.ajax({
+							type: "POST",
+							url: "bus/bus_verifyValues",
+							data: data,
+							success: function(response) {
+								$("#busBackground,).hide();
+								response = JSON.parse(response);
+								if(response["status"] == 200) {
+									confirmBooking(0, 0, section);
+								}
+							}
+						});
+						
+						$(this).dialog("close");
+						return false;
+					},
+					Cancel: function() {
+						$(this).dialog("close");
+						return false;
+					}
+				},
+				create: function (event, ui) {
+					$(".ui-dialog-titlebar button").hide();
+					$("#busDiagContainer").css('height', "auto");
+				}
+			});
+			
+			return false;
+		}
+	}
+	
+	var proceedToBooking = 0;
+	
+	if(onwardSelectedSeats.length == 0) {
+		alert("Please select atleast one seat to book your depature bus.");
+		return false;
+	}
+	
+	if(journeyType == 0 && journeyState == 0) {
+		onwardSection = section;
+		proceedToBooking = 1;
+	} else if(journeyType == 1 && journeyState == 1) {
+		if(returnSelectedSeats.length == 0) {
+			alert("Please select atleast one seat to book your arrival bus.");
+			return false;
+		}
+		
+		if(isAllowedToChooseDifferentSeatCount == 0 && returnSelectedSeats.length != onwardSelectedSeats.length) {
+			alert("Please select correct number of seats. Number of seats that you select for return journey must be same as your onward journey.");
+			return false;
+		}
+		
+		returnSection = section;
+		proceedToBooking = 1;
+	} else {
+		var busName = $("#busName_0_"+section).html().trim();
+		var busType = $("#busType_0_"+section).html().trim();
+		var deptTime = $("#deptTime_0_"+section).html().trim();
+		var journeyDuration = $("#journeyDurationText_0_"+section).html().trim();
+		var arrTime = $("#arrTime_0_"+section).html().trim();
+		var boardingPoint = $("#boarding_option_0_0_"+section).val().trim();
+		var droppingPoint = $("#dropping_option_0_1_"+section).val().trim();
+		var selectedSeats = onwardSelectedSeats.join(", ");
+		var fare = $("#total_amount_0_"+section).html();
+		onwardSection = section;
+		
+		var selectedOnwardBus = '<div><div><h6 class="font-weight-bold">Selected One Way Bus</h6></div><div class="col-md-12"><div class="row white" style="border: 1px solid #ddd; border-radius: 5px; margin-bottom:10px; padding-top: 10px;cursor: pointer;" onclick="loadOnwardDetails()"><div class="col-md-4 col-12 hidden-lg hidden-md hidden-md"><p style="font-weight:600;">'+busName+'</p><small style="font-size: 11px;">'+busType+'</small></div><div class="col-md-3 col-4"><h5 class="font-weight-bold mb-1">'+deptTime+'</h5><small style="font-size: 11px;">Boarding Point: <br/> '+boardingPoint+'</small></div><div class="col-md-2 col-4 pt-2"><div class="row"><span class="p-2" style="font-weight: bold;">'+journeyDuration+'</span></div></div><div class="col-md-3 col-4" style="text-align: right;"><h5 class="font-weight-bold mb-1">'+arrTime+'</h5><small style="font-size: 11px;">Dropping Point: <br/> '+droppingPoint+'</small></div><div class="col-md-12" style="border-bottom: 1px solid #ddd; margin: 5px 0px;"></div><div class="col-md-6"><div style="font-weight:600;color:#5c8b15;">SELECTED SEATS:<span> '+selectedSeats+'</span></div></div><div class="col-md-6 text-right"><label style="font-weight:600;cursor: pointer;">FARE: '+fare+'</label></div></div></div></div><div><h6 class="font-weight-bold">Search Results For Return Bus</h6></div>';
+		
+		onward_filterTime = [];
+		onward_filterOperator = [];
+		onward_filterType = [];
+		onward_filterBoardingPoint = [];
+		onward_filterDroppingPoint = [];
+		onward_filterAmenities = [];
+		
+		$('input[name="busTimeCheckBox"]').each(function() {
+			if($(this).prop("checked")) {
+				onward_filterTime.push($(this).prop('id'));
+			}
+		});
+
+		$('input[name="busAmenitiesCheckBox"]').each(function() {
+			if($(this).prop("checked")) {
+				onward_filterAmenities.push($(this).prop('id'));
+			}
+		});
+
+		$('input[name="busTypeCheckBox"]').each(function() {
+			if($(this).prop("checked")) {
+				onward_filterType.push($(this).prop('id'));
+			}
+		});
+
+		$('input[name="busOperatorCheckBox"]').each(function() {
+			if($(this).prop("checked")) {
+				onward_filterOperator.push($(this).prop('id'));
+			}
+		});
+
+		$('input[name="boardingPointCheckBox"]').each(function() {
+			if($(this).prop("checked")) {
+				onward_filterBoardingPoint.push($(this).prop('id'));
+			}
+		});
+
+		$('input[name="droppingPointCheckBox"]').each(function() {
+			if($(this).prop("checked")) {
+				onward_filterDroppingPoint.push($(this).prop('id'));
+			}
+		});
+		
+		if(return_filterTime.length > 0) {
+			/*
+			$("#busFilterTime").val(return_filterTime);
+			$("#busFilterOperator").val(return_filterOperator);
+			$("#busFilterType").val(return_filterType);
+			$("#busFilterPickup").val(return_filterBoardingPoint);
+			$("#busFilterDrop").val(return_filterDroppingPoint);
+			$('#busFilterAmenities').val(return_filterAmenities);
+			$('#busFilterAmenities').formSelect();
+			*/
+
+			$('input[name="busTimeCheckBox"]').each(function() {
+				if(jQuery.inArray($(this).prop('id'), return_filterTime) !== -1) {
+					$(this).prop('checked', true);
+				} else {
+					$(this).prop('checked', false);
+				}
+			});
+
+			$('input[name="busAmenitiesCheckBox"]').each(function() {
+				if(jQuery.inArray($(this).prop('id'), return_filterAmenities) !== -1) {
+					$(this).prop('checked', true);
+				} else {
+					$(this).prop('checked', false);
+				}
+			});
+
+			$('input[name="busTypeCheckBox"]').each(function() {
+				if(jQuery.inArray($(this).prop('id'), return_filterType) !== -1) {
+					$(this).prop('checked', true);
+				} else {
+					$(this).prop('checked', false);
+				}
+			});
+
+			$('input[name="busOperatorCheckBox"]').each(function() {
+				if(jQuery.inArray($(this).prop('id'), return_filterOperator) !== -1) {
+					$(this).prop('checked', true);
+				} else {
+					$(this).prop('checked', false);
+				}
+			});
+
+			$('input[name="boardingPointCheckBox"]').each(function() {
+				if(jQuery.inArray($(this).prop('id'), return_filterBoardingPoint) !== -1) {
+					$(this).prop('checked', true);
+				} else {
+					$(this).prop('checked', false);
+				}
+			});
+
+			$('input[name="droppingPointCheckBox"]').each(function() {
+				if(jQuery.inArray($(this).prop('id'), return_filterDroppingPoint) !== -1) {
+					$(this).prop('checked', true);
+				} else {
+					$(this).prop('checked', false);
+				}
+			});
+		} else {
+			/*
+			$("#busFilterTime").val("time_all");
+			$("#busFilterOperator").val("operator_all");
+			$("#busFilterType").val("bustype_all");
+			$("#busFilterPickup").val("boardingPoint_all");
+			$("#busFilterDrop").val("droppingPoint_all");
+			$('#busFilterAmenities').val("");
+			$('#busFilterAmenities').formSelect();
+			*/
+
+			$('input[name="busTimeCheckBox"]').each(function() {
+				$(this).prop('checked', false);
+			});
+
+			$('input[name="busAmenitiesCheckBox"]').each(function() {
+				$(this).prop('checked', false);
+			});
+
+			$('input[name="busTypeCheckBox"]').each(function() {
+				$(this).prop('checked', false);
+			});
+
+			$('input[name="busOperatorCheckBox"]').each(function() {
+				$(this).prop('checked', false);
+			});
+
+			$('input[name="boardingPointCheckBox"]').each(function() {
+				$(this).prop('checked', false);
+			});
+
+			$('input[name="droppingPointCheckBox"]').each(function() {
+				$(this).prop('checked', false);
+			});
+		}
+		
+		searchBusForJourney(1);
+		$("#selectedBusSearchContainer").append(selectedOnwardBus);
+		$("#selectedBusSearchContainer").show();
+		searchJourneyState = 1;
+	}
+	
+	if(proceedToBooking == 1) {
+		var cur_id = $("#cur_id_0_"+onwardSection).val().trim();
+		var busStartCountry = $("#busStartCountry").val();
+		var busEndCountry = $("#busEndCountry").val();
+		var set = 1;
+			
+		if(journeyType == 0) {
+			var onward_sub_id = $("#sub_id_0_"+onwardSection).val().trim();
+			var onward_tdi_id = $("#tdi_id_0_"+onwardSection).val().trim();
+			var onward_lb_id = $("#lb_id_0_"+onwardSection).val().trim();
+			var onward_pbi_id = $("#pbi_id_0_"+onwardSection).val().trim();
+			var onward_asi_id = $("#asi_id_0_"+onwardSection).val().trim();
+			var onward_ukey = $("#seatmapukey_0_"+onwardSection).val().trim();
+			var onwardBusName = $("#busName_0_"+onwardSection).html().trim();
+			var onwardBusOperator = $("#busOperator_0_"+onwardSection).val().trim();
+			var onwardBusType = $("#busType_0_"+onwardSection).html().trim();
+			var onwardStartDestinationDate = $("#deptDate_0_"+onwardSection).val().trim();
+			var onwardEndDestinationDate = $("#arrDate_0_"+onwardSection).val().trim();
+			var onwardStartDestinationTime = $("#deptTime_0_"+onwardSection).html().trim();
+			var onwardEndDestinationTime = $("#arrTime_0_"+onwardSection).html().trim();
+			var onwardJourneyDuration = $("#journeyDuration_0_"+onwardSection).val().trim();
+			var onwardBoardingPoint = $("#boarding_option_0_0_"+onwardSection).val().trim();
+			var onwardDroppingPoint = $("#dropping_option_0_1_"+onwardSection).val().trim();
+			var onwardSelectedSeatsCount = onwardSelectedSeats.length;
+			var onwardPlateNumber = $("#busPlateNumber_0_"+onwardSection).html().trim();
+			var onward_via = $("#busVia_0_"+onwardSection).html().trim();
+			var return_sub_id = "";
+			var return_tdi_id = "";
+			var return_lb_id = "";
+			var return_pbi_id = "";
+			var return_asi_id = "";
+			var return_ukey = "";
+			var returnBusName = "";
+			var returnBusOperator = "";
+			var returnBusType = "";
+			var returnStartDestinationDate = "";
+			var returnEndDestinationDate = "";
+			var returnStartDestinationTime = "";
+			var returnEndDestinationTime = "";
+			var returnJourneyDuration = "";
+			var returnBoardingPoint = "";
+			var returnDroppingPoint = "";
+			var returnSelectedSeatsCount = returnSelectedSeats.length;
+			var returnPlateNumber = "";
+			var return_via = "";
+		} else {
+			var onward_sub_id = $("#sub_id_0_"+onwardSection).val().trim();
+			var onward_tdi_id = $("#tdi_id_0_"+onwardSection).val().trim();
+			var onward_lb_id = $("#lb_id_0_"+onwardSection).val().trim();
+			var onward_pbi_id = $("#pbi_id_0_"+onwardSection).val().trim();
+			var onward_asi_id = $("#asi_id_0_"+onwardSection).val().trim();
+			var onward_ukey = $("#seatmapukey_0_"+onwardSection).val().trim();
+			var onwardBusName = $("#busName_0_"+onwardSection).html().trim();
+			var onwardBusOperator = $("#busOperator_0_"+onwardSection).val().trim();
+			var onwardBusType = $("#busType_0_"+onwardSection).html().trim();
+			var onwardStartDestinationDate = $("#deptDate_0_"+onwardSection).val().trim();
+			var onwardEndDestinationDate = $("#arrDate_0_"+onwardSection).val().trim();
+			var onwardStartDestinationTime = $("#deptTime_0_"+onwardSection).html().trim();
+			var onwardEndDestinationTime = $("#arrTime_0_"+onwardSection).html().trim();
+			var onwardJourneyDuration = $("#journeyDuration_0_"+onwardSection).val().trim();
+			var onwardBoardingPoint = $("#boarding_option_0_0_"+onwardSection).val().trim();
+			var onwardDroppingPoint = $("#dropping_option_0_1_"+onwardSection).val().trim();
+			var onwardSelectedSeatsCount = onwardSelectedSeats.length;
+			var onwardPlateNumber = $("#busPlateNumber_0_"+onwardSection).html().trim();
+			var onward_via = $("#busVia_0_"+onwardSection).html().trim();
+			var return_sub_id = $("#sub_id_1_"+returnSection).val().trim();
+			var return_tdi_id = $("#tdi_id_1_"+returnSection).val().trim();
+			var return_lb_id = $("#lb_id_1_"+returnSection).val().trim();
+			var return_pbi_id = $("#pbi_id_1_"+returnSection).val().trim();
+			var return_asi_id = $("#asi_id_1_"+returnSection).val().trim();
+			var return_ukey = $("#seatmapukey_1_"+returnSection).val().trim();
+			var returnBusName = $("#busName_1_"+returnSection).html().trim();
+			var returnBusOperator = $("#busOperator_1_"+returnSection).val().trim();
+			var returnBusType = $("#busType_1_"+returnSection).html().trim();
+			var returnStartDestinationDate = $("#deptDate_1_"+returnSection).val().trim();
+			var returnEndDestinationDate = $("#arrDate_1_"+returnSection).val().trim();
+			var returnStartDestinationTime = $("#deptTime_1_"+returnSection).html().trim();
+			var returnEndDestinationTime = $("#arrTime_1_"+returnSection).html().trim();
+			var returnJourneyDuration = $("#journeyDuration_1_"+returnSection).val().trim();
+			var returnBoardingPoint = $("#boarding_option_1_0_"+returnSection).val().trim();
+			var returnDroppingPoint = $("#dropping_option_1_1_"+returnSection).val().trim();
+			var returnSelectedSeatsCount = returnSelectedSeats.length;
+			var returnPlateNumber = $("#busPlateNumber_1_"+returnSection).html().trim();
+			var return_via = $("#busVia_1_"+returnSection).html().trim();
+		}
+		
+		var key = encrypt(jsrd, busStartCountry+busEndCountry+isAllowedToChooseDifferentSeatCount+cur_id+currencyText+onward_sub_id+onward_tdi_id+onward_lb_id+onward_pbi_id+onward_asi_id+onward_ukey+onwardSelectedSeatsCount+onwardSelectedSeats.join(", ")+onwardSelectedSeatsId.join(", ")+onwardSelectedSeatsPrice.join(", ")+onwardSelectedSeatsType.join(", ")+onwardBusName+onwardBusOperator+onwardBusType+onwardBoardingPoint+onwardDroppingPoint+onwardStartDestinationDate+onwardEndDestinationDate+onwardStartDestinationTime+onwardEndDestinationTime+onwardJourneyDuration+return_sub_id+return_tdi_id+return_lb_id+return_pbi_id+return_asi_id+return_ukey+returnSelectedSeatsCount+returnSelectedSeats.join(", ")+returnSelectedSeatsId.join(", ")+returnSelectedSeatsPrice.join(", ")+returnSelectedSeatsType.join(", ")+returnBusName+returnBusOperator+returnBusType+returnBoardingPoint+returnDroppingPoint+returnStartDestinationDate+returnEndDestinationDate+returnStartDestinationTime+returnEndDestinationTime+returnJourneyDuration+onwardPlateNumber+returnPlateNumber+onward_via+return_via+set+srd+rd);
+		var data = "cur_id="+cur_id+"&onward_sub_id="+onward_sub_id+"&onward_tdi_id="+onward_tdi_id+"&onward_lb_id="+onward_lb_id+"&onward_pbi_id="+onward_pbi_id+"&onward_asi_id="+onward_asi_id+"&return_sub_id="+return_sub_id+"&return_tdi_id="+return_tdi_id+"&return_lb_id="+return_lb_id+"&return_pbi_id="+return_pbi_id+"&key="+key+"&return_asi_id="+return_asi_id+"&set="+set+"&onwardSelectedSeatsCount="+onwardSelectedSeatsCount+"&onwardSelectedSeats="+onwardSelectedSeats.join(", ")+"&onwardSelectedSeatsId="+onwardSelectedSeatsId.join(", ")+"&returnSelectedSeatsCount="+returnSelectedSeatsCount+"&returnSelectedSeats="+returnSelectedSeats.join(", ")+"&returnSelectedSeatsId="+returnSelectedSeatsId.join(", ")+"&onward_ukey="+onward_ukey+"&return_ukey="+return_ukey+"&onwardBusName="+onwardBusName+"&onwardBusOperator="+onwardBusOperator+"&onwardBusType="+onwardBusType+"&onwardBoardingPoint="+onwardBoardingPoint+"&onwardDroppingPoint="+onwardDroppingPoint+"&returnBusName="+returnBusName+"&returnBusOperator="+returnBusOperator+"&returnBusType="+returnBusType+"&returnBoardingPoint="+returnBoardingPoint+"&returnDroppingPoint="+returnDroppingPoint+"&onwardStartDestinationTime="+onwardStartDestinationTime+"&onwardEndDestinationTime="+onwardEndDestinationTime+"&returnStartDestinationTime="+returnStartDestinationTime+"&returnEndDestinationTime="+returnEndDestinationTime+"&onwardStartDestinationDate="+onwardStartDestinationDate+"&onwardEndDestinationDate="+onwardEndDestinationDate+"&returnStartDestinationDate="+returnStartDestinationDate+"&returnEndDestinationDate="+returnEndDestinationDate+"&onwardJourneyDuration="+onwardJourneyDuration+"&returnJourneyDuration="+returnJourneyDuration+"&busStartCountry="+busStartCountry+"&busEndCountry="+busEndCountry+"&isAllowedToChooseDifferentSeatCount="+isAllowedToChooseDifferentSeatCount+"&currencyText="+currencyText+"&onwardSelectedSeatsPrice="+onwardSelectedSeatsPrice.join(", ")+"&returnSelectedSeatsPrice="+returnSelectedSeatsPrice.join(", ")+"&onwardSelectedSeatsType="+onwardSelectedSeatsType.join(", ")+"&returnSelectedSeatsType="+returnSelectedSeatsType.join(", ")+"&onwardPlateNumber="+onwardPlateNumber+"&returnPlateNumber="+returnPlateNumber+"&onward_via="+onward_via+"&return_via="+return_via;
+		
+		$("#busBackground,).show();
+		
+		$.ajax({
+			type: "POST",
+			url: "bus/bus_verifyValues",
+			data: data,
+			success: function(response) {
+				$("#busBackground,).hide();
+				response = JSON.parse(response);
+				if(response["status"] == 200) {
+					window.location.href = "bus_travelling_details";
+				} else {
+					alert(response["message"]);
+				}
+			}
+		});
+	}
+}
+
+function loadOnwardDetails() {
+	if(!confirm("Are you sure you want to go back and select different seat/bus for one way?")) {
+		return false;
+	}
+	
+	searchJourneyState = 0;
+	return_filterTime = [];
+	return_filterOperator = [];
+	return_filterType = [];
+	return_filterBoardingPoint = [];
+	return_filterDroppingPoint = [];
+	return_filterAmenities = [];
+
+	$('input[name="busTimeCheckBox"]').each(function() {
+		if($(this).prop("checked")) {
+			return_filterTime.push($(this).prop('id'));
+		}
+	});
+
+	$('input[name="busAmenitiesCheckBox"]').each(function() {
+		if($(this).prop("checked")) {
+			return_filterAmenities.push($(this).prop('id'));
+		}
+	});
+
+	$('input[name="busTypeCheckBox"]').each(function() {
+		if($(this).prop("checked")) {
+			return_filterType.push($(this).prop('id'));
+		}
+	});
+
+	$('input[name="busOperatorCheckBox"]').each(function() {
+		if($(this).prop("checked")) {
+			return_filterOperator.push($(this).prop('id'));
+		}
+	});
+
+	$('input[name="boardingPointCheckBox"]').each(function() {
+		if($(this).prop("checked")) {
+			return_filterBoardingPoint.push($(this).prop('id'));
+		}
+	});
+
+	$('input[name="droppingPointCheckBox"]').each(function() {
+		if($(this).prop("checked")) {
+			return_filterDroppingPoint.push($(this).prop('id'));
+		}
+	});
+	
+	if($("#busFilterAmenities").val() !== null && $("#busFilterAmenities").val() != "") {
+		var amenities = $("#busFilterAmenities").val().toString().split(",");
+		
+		for(i = 0; i < amenities.length; i++) {
+			return_filterAmenities.push(amenities[i]);
+		}
+	}
+	
+	$("#onwardBusSearchContainer").show();
+	$("#selectedBusSearchContainer").hide();
+	$("#returnBusSearchContainer").hide();
+	
+	/*
+	$("#busFilterTime").val(onward_filterTime);
+	$("#busFilterOperator").val(onward_filterOperator);
+	$("#busFilterType").val(onward_filterType);
+	$("#busFilterPickup").val(onward_filterBoardingPoint);
+	$("#busFilterDrop").val(onward_filterDroppingPoint);
+	$('#busFilterAmenities').val(onward_filterAmenities);
+	$('#busFilterAmenities').formSelect();
+	*/
+
+	$('input[name="busTimeCheckBox"]').each(function() {
+		if(jQuery.inArray($(this).prop('id'), onward_filterTime) !== -1) {
+			$(this).prop('checked', true);
+		} else {
+			$(this).prop('checked', false);
+		}
+	});
+
+	$('input[name="busAmenitiesCheckBox"]').each(function() {
+		if(jQuery.inArray($(this).prop('id'), onward_filterAmenities) !== -1) {
+			$(this).prop('checked', true);
+		} else {
+			$(this).prop('checked', false);
+		}
+	});
+
+	$('input[name="busTypeCheckBox"]').each(function() {
+		if(jQuery.inArray($(this).prop('id'), onward_filterType) !== -1) {
+			$(this).prop('checked', true);
+		} else {
+			$(this).prop('checked', false);
+		}
+	});
+
+	$('input[name="busOperatorCheckBox"]').each(function() {
+		if(jQuery.inArray($(this).prop('id'), onward_filterOperator) !== -1) {
+			$(this).prop('checked', true);
+		} else {
+			$(this).prop('checked', false);
+		}
+	});
+
+	$('input[name="boardingPointCheckBox"]').each(function() {
+		if(jQuery.inArray($(this).prop('id'), onward_filterBoardingPoint) !== -1) {
+			$(this).prop('checked', true);
+		} else {
+			$(this).prop('checked', false);
+		}
+	});
+
+	$('input[name="droppingPointCheckBox"]').each(function() {
+		if(jQuery.inArray($(this).prop('id'), onward_filterDroppingPoint) !== -1) {
+			$(this).prop('checked', true);
+		} else {
+			$(this).prop('checked', false);
+		}
+	});
+	
+	applyBusFilters();
+	
+	$('html, body').animate({
+		scrollTop: $("#busSection_0_"+onwardSection).offset().top
+	}, 500);
+}
+
+function showSelectedSeats(journeyState, section, seatName, seatId, seatTypeId, seatType, seatPrice, seatTypeName) {
+	var sub_id = $("#sub_id_"+journeyState+"_"+section).val().trim();
+	var tdi_id = $("#tdi_id_"+journeyState+"_"+section).val().trim();
+	var lb_id = $("#lb_id_"+journeyState+"_"+section).val().trim();
+	var pbi_id = $("#pbi_id_"+journeyState+"_"+section).val().trim();
+	var asi_id = $("#asi_id_"+journeyState+"_"+section).val().trim();
+	var cur_id = $("#cur_id_"+journeyState+"_"+section).val().trim();
+	var seatmapukey = $("#seatmapukey_"+journeyState+"_"+section).val().trim();
+	var sleeper = $("#sleeper_"+journeyState+"_"+section).val().trim();
+	var cur_count = $("#cur_count_"+journeyState+"_"+section).val().trim();
+	
+	if($("#seat_"+journeyState+"_"+section+"_"+seatId).attr('src') != 'images/bus/regularseats/selected_seats_normal.png' && $("#seat_"+journeyState+"_"+section+"_"+seatId).attr('src') != 'images/bus/sleeperseats/selected_seats_normal.png' && $("#seat_"+journeyState+"_"+section+"_"+seatId).attr('src') != 'images/bus/sleeperseats/selected_seats_star.png' && $("#seat_"+journeyState+"_"+section+"_"+seatId).attr('src') != 'images/bus/sleeperseats/selected_seats_star.png') {
+		if(isAllowedToChooseDifferentSeatCount == 0) {
+			if(journeyState == 0 && onwardSelectedSeats.length >= onwardMaxSeatsBookingAllowed) {
+				alert("You have reached maximum seats allocated. Maximum seats allowed to book at once is "+onwardMaxSeatsBookingAllowed+".");
+				return false;
+			}
+			
+			if(journeyState == 1 && returnSelectedSeats.length >= onwardSelectedSeats.length) {
+				alert("You have reached maximum seats allocated. Number of seats that you can select for return journey should be same as your onward journey. You have selected "+onwardSelectedSeats.length+" seats for your onward journey.");
+				return false;
+			}
+		} else {
+			if(journeyState == 0 && onwardSelectedSeats.length >= onwardMaxSeatsBookingAllowed) {
+				alert("You have reached maximum seats allocated. Maximum seats allowed to book at once is "+onwardMaxSeatsBookingAllowed+".");
+				return false;
+			}
+			
+			if(journeyState == 1 && returnSelectedSeats.length >= returnMaxSeatsBookingAllowed) {
+				alert("You have reached maximum seats allocated. Maximum seats allowed to book at once is "+returnMaxSeatsBookingAllowed+".");
+				return false;
+			}
+		}
+	}
+	
+	var key = encrypt(jsrd, sub_id+tdi_id+lb_id+pbi_id+asi_id+seatId+cur_id+seatTypeId+section+journeyState+srd+rd);
+	var data = "sub_id="+sub_id+"&tdi_id="+tdi_id+"&lb_id="+lb_id+"&pbi_id="+pbi_id+"&asi_id="+asi_id+"&seatId="+seatId+"&cur_id="+cur_id+"&seatTypeId="+seatTypeId+"&section="+section+"&journeyState="+journeyState+"&key="+key+"&seatmapukey="+seatmapukey;
+	
+	$("#busBackground,).show();
+	
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_processSelectedSeat",
+		data: data,
+		success: function(response) {
+			$("#busBackground,).hide();
+			response = JSON.parse(response);
+			if(response["status"] == 200) {
+				if(seatType == 0) {
+					if(sleeper == 0) {
+						$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/regularseats/selected_seats_normal.png');
+					} else {
+						$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/sleeperseats/selected_seats_normal.png');
+					}
+				} else {
+					if(sleeper == 0) {
+						$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/regularseats/selected_seats_star.png');
+					} else {
+						$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/sleeperseats/selected_seats_star.png');
+					}
+				}
+				
+				if(journeyState == 0) {
+					onwardSelectedSeats.push(seatName);
+					onwardSelectedSeatsId.push(seatId);
+					onwardSelectedSeatsPrice.push(seatPrice);
+					onwardSelectedSeatsType.push(seatTypeName);
+					$("#seat_number_"+journeyState+"_"+section).empty();
+					$("#total_amount_"+journeyState+"_"+section).empty();
+					$("#seat_number_"+journeyState+"_"+section).html(onwardSelectedSeats.join(", "));
+					$("#total_amount_"+journeyState+"_"+section).html(response["amount"]);
+				} else if(journeyState == 1) {
+					returnSelectedSeats.push(seatName);
+					returnSelectedSeatsId.push(seatId);
+					returnSelectedSeatsPrice.push(seatPrice);
+					returnSelectedSeatsType.push(seatTypeName);
+					$("#seat_number_"+journeyState+"_"+section).empty();
+					$("#total_amount_"+journeyState+"_"+section).empty();
+					$("#seat_number_"+journeyState+"_"+section).html(returnSelectedSeats.join(", "));
+					$("#total_amount_"+journeyState+"_"+section).html(response["amount"]);
+				}
+				
+				var tempCurrencyText = response["amount"].split(". ");
+				currencyText = tempCurrencyText[0];
+			} else if(response["status"] == 203) {
+				$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', $("#original_"+journeyState+"_"+section+"_"+seatId).val());
+				
+				if(journeyState == 0) {
+					var index = onwardSelectedSeats.indexOf(seatName);
+					if (index > -1) {
+						onwardSelectedSeats.splice(index, 1);
+						onwardSelectedSeatsId.splice(index, 1);
+						onwardSelectedSeatsPrice.splice(index, 1);
+						onwardSelectedSeatsType.splice(index, 1);
+					}
+					
+					$("#seat_number_"+journeyState+"_"+section).empty();
+					$("#total_amount_"+journeyState+"_"+section).empty();
+					$("#seat_number_"+journeyState+"_"+section).html(onwardSelectedSeats.join(", "));
+					$("#total_amount_"+journeyState+"_"+section).html(response["amount"]);
+					
+					if(cur_count > 1 && onwardSelectedSeats.length == 0) {
+						//var selectedCurr = $("#cur_id_"+journeyState+"_"+section+" option:selected").text();
+						$("#total_amount_"+journeyState+"_"+section).html(currencyText+". 0");
+						$("#seat_number_"+journeyState+"_"+section).html("-");
+					}
+				} else if(journeyState == 1) {
+					var index = returnSelectedSeats.indexOf(seatName);
+					if (index > -1) {
+						returnSelectedSeats.splice(index, 1);
+						returnSelectedSeatsId.splice(index, 1);
+						returnSelectedSeatsPrice.splice(index, 1);
+						returnSelectedSeatsType.splice(index, 1);
+					}
+					
+					$("#seat_number_"+journeyState+"_"+section).empty();
+					$("#total_amount_"+journeyState+"_"+section).empty();
+					$("#seat_number_"+journeyState+"_"+section).html(returnSelectedSeats.join(", "));
+					$("#total_amount_"+journeyState+"_"+section).html(response["amount"]);
+					
+					if(cur_count > 1 && returnSelectedSeats.length == 0) {
+						//var selectedCurr = $("#cur_id_"+journeyState+"_"+section+" option:selected").text();
+						$("#total_amount_"+journeyState+"_"+section).html(currencyText+". 0");
+						$("#seat_number_"+journeyState+"_"+section).html("-");
+					}
+				}
+			} else {
+				$("#seat_"+journeyState+"_"+section+"_"+seatId).removeAttr("onclick");
+				$("#seat_"+journeyState+"_"+section+"_"+seatId).css('cursor', 'default');
+
+				if(response["status"] == 201) {
+					if(seatType == 0) {
+						if(sleeper == 0) {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/regularseats/booked_seats_normal.png');
+						} else {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/sleeperseats/booked_seats_normal.png');
+						}
+					} else {
+						if(sleeper == 0) {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/regularseats/booked_seats_star.png');
+						} else {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/sleeperseats/booked_seats_star.png');
+						}
+
+					}
+				}
+				
+				if(response["status"] == 202) {
+					if(seatType == 0) {
+						if(sleeper == 0) {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/regularseats/processing_seats_normal.png');
+						} else {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/sleeperseats/processing_seats_normal.png');
+						}
+					} else {
+						if(sleeper == 0) {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/regularseats/processing_seats_star.png');
+						} else {
+							$("#seat_"+journeyState+"_"+section+"_"+seatId).prop('src', 'images/bus/sleeperseats/processing_seats_star.png');
+						}
+					}
+				}
+				
+				alert(response["message"]);
+			}
+		}
+	});
+}
+
+function showHideLowerUpperDeck(selectedDeck, unselectedDeck) {
+	$("#"+selectedDeck).show();
+	$("#"+unselectedDeck).hide();
+}
+
+function changeDateForBus() {
+	$('html, body').animate({
+		scrollTop: $("#busonward").offset().top
+	}, 500);
+}
+
+function skipAndBookOneWay() {
+	var set = 3;
+	journeyType = 0;
+				
+	var key = encrypt(jsrd, journeyType+""+set+srd+rd);
+	var data = "journeyType="+journeyType+"&set="+set+"&key="+key;
+	$("#busBackground,).show();
+	
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_verifyValues",
+		data: data,
+		success: function(response) {
+			$("#busBackground,).hide();
+			response = JSON.parse(response);
+			if(response["status"] == 200) {
+				confirmBooking(0, 0, onwardSection);
+			}
+		}
+	});
+}
+
+function startTimeCountDown() {
+	if(seconds == 0 || seconds == 00 || seconds == "0" || seconds == "00") {
+		seconds = 59;
+		minutes = parseInt(minutes) - 1;
+	} else {
+		seconds = parseInt(seconds) - 1;
+	}
+	if(minutes < 0 || isNaN(minutes)) {
+		alert("Your session has expired");
+		location.href = "https://www.bmcoach.co.tz/";
+	} else {
+		seconds = checkTime(seconds);
+		minutes = checkTime(minutes);
+		
+		//document.getElementById('txt').innerHTML = "Expires In - " + m + ":" + s;
+		$("#minutes").html(minutes);
+		$("#seconds").html(seconds);
+		var t = setTimeout(startTimeCountDown, 1000);
+	}
+}
+
+function checkTime(i) {
+	if (i < 10) {i = "0" + parseInt(i)};  // add zero in front of numbers < 10
+	return i;
+}
+
+//For Alphabets only
+$(".onlyalpha").keypress(function(event){
+	var inputValue = event.which;
+	// allow letters and whitespaces only.
+	if(!(inputValue >= 65 && inputValue <= 90) && !(inputValue >= 97 && inputValue <= 122)) { 
+		event.preventDefault(); 
+	}
+});
+
+//For Alphabets and Spaces
+$(".alphaspace").keypress(function(event){
+	var inputValue = event.which;
+	// allow letters and whitespaces only.
+	if(!(inputValue >= 65 && inputValue <= 90) && !(inputValue >= 97 && inputValue <= 122) && (inputValue != 32 && inputValue != 0)) { 
+		event.preventDefault(); 
+	}
+});
+
+//For Digits
+$(".onlydigits").keypress(function(event){
+	var inputValue = event.which;
+	// allow letters and whitespaces only.
+	if(!(inputValue >= 48 && inputValue <= 57)) { 
+		event.preventDefault(); 
+	}
+});
+
+//For Digits and decimal
+$(".onlydigitsanddecimal").keypress(function(event){
+	var inputValue = event.which;
+	// allow letters and whitespaces only.
+	if(!(inputValue >= 48 && inputValue <= 57) && !(inputValue <= 46)) { 
+		event.preventDefault(); 
+	}
+});
+
+//For Alphabets, Space and Digits
+$(".alphanumericspace").keypress(function(event){
+	var inputValue = event.which;
+	// allow letters and whitespaces only.
+	if(!(inputValue >= 65 && inputValue <= 120) && (inputValue != 32 && inputValue != 0) && !(inputValue >= 48 && inputValue <= 57)) { 
+		event.preventDefault(); 
+	}
+});
+
+//For Alphabets and Digits
+$(".alphanumeric").keypress(function(event){
+	var inputValue = event.which;
+	// allow letters and whitespaces only.
+	if(!(inputValue >= 65 && inputValue <= 90) && !(inputValue >= 97 && inputValue <= 122) && !(inputValue >= 48 && inputValue <= 57)) { 
+		event.preventDefault(); 
+	}
+});
+
+function validateEmail(email) {
+	var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return re.test(String(email).toLowerCase());
+}
+
+function addPlusSign(id) {
+	if($("#"+id).val().trim().charAt(0) != "+") {
+		$("#"+id).val("+"); 
+	}
+}
+
+function addPlusSignForTanz(id) {
+	if($("#"+id).val().trim().charAt(0) != "+" || $("#"+id).val().trim().charAt(1) != "2" || $("#"+id).val().trim().charAt(2) != "5" || $("#"+id).val().trim().charAt(3) != "5") {
+		$("#"+id).val("+255"); 
+	}
+	var tempId=id.split('_');
+	if(tempId[0]=="AZAM-AZAMPESA")
+		document.getElementById(id).maxLength=14;
+	else
+		document.getElementById(id).maxLength=13;
+}
+	
+function setPhoneMaxLength() {
+	var countryCode = $("#countrycode").val().trim();
+	var maxLength = 0;
+	
+	if(countryCode == "+255" || countryCode == "+258" || countryCode == "+254" || countryCode == "+256" || countryCode == "+262") {
+		maxLength = 9;
+	} else if(countryCode == "+91") {
+		maxLength = 10;
+	} else if(countryCode == "+86") {
+		maxLength = 11;
+	} else {
+		maxLength = 15;
+	}
+	
+	if(document.getElementById("fetchUserDetails")) {
+		if(document.getElementById("fetchUserDetails").checked == true) {
+			if(countryCode != "+"+custMobileCountryCode || $("#contactNumber").val().trim() != custMobile) {
+				$("#contactNumber").val("");
+			}
+		} else {
+			$("#contactNumber").val("");
+		}
+	} else {
+		$("#contactNumber").val("");
+	}
+	
+	$("#contactNumber").attr('maxlength', maxLength);
+}
+
+function loadPassengerDetails() {
+	var countryCode = "";
+	
+	if(document.getElementById("fetchUserDetails").checked == true) {
+		if(custMobileCountryCode != "") {
+			$("#countrycode").val("+"+custMobileCountryCode);
+			$("#contactNumber").val(custMobile).trigger("change");
+			$("#contactEmail").val(custEmail).trigger("change");
+		} else {
+			var tempCountryCode = "";
+			var tempPhoneNumber = "";
+			var exists = false;
+			
+			for(i = 4; i > 0; i--) {
+				tempCountryCode = custMobile.substring(0, i);
+				tempPhoneNumber = custMobile.substring(i);
+				exists = false;
+				
+				$('#countrycode option').each(function() {
+					if(this.value == "+"+tempCountryCode) {
+						exists = true;
+						return false;
+					}
+				});
+				
+				if(exists) {
+					break;
+				}
+			}
+			
+			custMobileCountryCode = tempCountryCode;
+			custMobile = tempPhoneNumber;
+			$("#countrycode").val("+"+tempCountryCode);
+			$("#contactNumber").val(tempPhoneNumber).trigger("change");
+			$("#contactEmail").val(custEmail).trigger("change");
+		}
+		$(".checkTextChange").addClass("active");
+	} else {
+		$("#countrycode").val("+255");
+		$("#contactNumber").val("").trigger("change");
+		$("#contactEmail").val("").trigger("change");
+		$(".checkTextChange").removeClass("active");
+	}
+	
+	//$(".select_dropdown").formSelect();
+	setPhoneMaxLength();
+}
+
+function closeModalSubPaymentModal() {
+	$("#subPaymentModal").modal("close");
+}
+
+function proceedToMakePayment(option) {
+	var data = "";
+	//var contactNumber = $("#countrycode").val().trim()+""+$("#contactNumber").val().trim();
+	var c1 = $("#countrycode").val().trim();
+	var c2 = $("#contactNumber").val().trim();
+	if(parseInt(c2[0])==0 && (c1=="+255" || c1=="+258" || c1=="+254" || c1=="+256" || c1=="+262"))
+		c2=c2.substring(1);
+	var c3 = parseInt(c2);
+	var contactNumber = c1.concat(c3);
+	var contactEmail = $("#contactEmail").val().trim();
+	var paycode = "";
+	contactNumber = contactNumber.substring(1);
+	
+	if(contactNumber.length < 12) {
+		alert("Please check your contact number.");
+		return false;
+	}
+	
+	if(contactEmail != "" && !validateEmail(contactEmail)) {
+		alert("Please check you email id or keep it blank.");
+		return false;
+	}
+	
+	if(option == 1) {
+		var tigo = $("#tigo").val().trim();
+		paycode = tigoPayCode;
+		
+		if(tigo.length <= 12) {
+			alert("Please check your Tigo number.");
+			return false;
+		}
+		
+		if($("#tigo_term").is(":checked")) {
+			data = "tigo="+tigo;
+		} else {
+			alert("Please accept the term and conditions");
+			return false;
+		}
+	} else if(option == 2) {
+		var mpesa = $("#mpesa").val().trim();
+		paycode = mpesaPayCode;
+		
+		if(mpesa.length <= 12) {
+			alert("Please check your MPESA number.");
+			return false;
+		}
+		
+		if($("#mpesa_term").is(":checked")) {
+			data = "mpesa="+mpesa;
+		} else {
+			alert("Please accept the term and conditions");
+			return false;
+		}
+	} else if(option == 3) {
+		var airtel = $("#airtel").val().trim();
+		paycode = airtelPayCode;
+		
+		if(airtel.length <= 12) {
+			alert("Please check your Airtel number.");
+			return false;
+		}
+		
+		if($("#airtel_term").is(":checked")) {
+			data = "airtel="+airtel;
+		} else {
+			alert("Please accept the term and conditions");
+			return false;
+		}
+	} else if(option == 4) {
+		paycode = nidcPayCode;
+		
+		if($("#nidc_term").is(":checked")) {
+			if(nidcSubPGWS == 0) {
+				proceedToBook(contactNumber, contactEmail, paycode, "");
+			} else {
+				var acceptPhoneNumber = "<?php echo $nidcAcceptPayPhone; ?>";
+				if(acceptPhoneNumber == 1) {
+					var payContactNumber = $("#nidc_pay_number").val().trim();
+					payContactNumber = payContactNumber.substring(1);
+					
+					if(payContactNumber.length < 12) {
+						alert("Please check your pay phone number.");
+						return false;
+					}
+					
+					//$("#busBackground1, #BusLoader1").show();
+					
+					$("#subPaymentModal").modal('show');
+				} else {
+					//$("#busBackground1, #BusLoader1").show();
+					
+					$("#subPaymentModal").modal('show');
+				}
+			}
+		} else {
+			alert("Please accept the term and conditions");
+			return false;
+		}
+	}
+	
+	if(option == 1 || option == 2 || option == 3) {
+		
+	}
+}
+
+function chooseSubPaymentOption(paycode, acceptPhoneNumber) {
+	if($("#nidc_term").is(":checked")) {
+	// var contactNumber = $("#countrycode").val().trim()+""+$("#contactNumber").val().trim();
+	var c1 = $("#countrycode").val().trim();
+	var c2 = $("#contactNumber").val().trim();
+	if(parseInt(c2[0])==0 && (c1=="+255" || c1=="+258" || c1=="+254" || c1=="+256" || c1=="+262"))
+		c2=c2.substring(1);
+	var c3 = parseInt(c2);
+	var contactNumber = c1.concat(c3);
+
+		var contactEmail = $("#contactEmail").val().trim();
+		contactNumber = contactNumber.substring(1);
+		
+		if(contactNumber.length < 12) {
+			alert("Please check your contact number.");
+			return false;
+		}
+		
+		if(contactEmail != "" && !validateEmail(contactEmail)) {
+			alert("Please check you email id or keep it blank.");
+			return false;
+		}
+		
+		$("#busBackground1, #BusLoader1").hide();
+		
+		if(acceptPhoneNumber == 1) {
+			var payContactNumber = $("#nidc_pay_number").val().trim();
+			payContactNumber = payContactNumber.substring(1);
+			
+			if(payContactNumber.length < 12) {
+				alert("Please check your pay phone number.");
+				return false;
+			}
+		}
+		
+		$("#subPaymentModal").modal("close");
+		
+		if(acceptPhoneNumber == 0) {
+			proceedToBook(contactNumber, contactEmail, paycode, "");
+		} else {
+			proceedToBook(contactNumber, contactEmail, paycode, payContactNumber);
+		}
+	} else {
+		alert("Please accept the term and conditions");
+		return false;
+	}
+}
+
+function getPhoneNumberAndPay(paycode, section, acceptPhoneNumber) {
+	if($("#payment_term_"+section).is(":checked")) {
+		//var contactNumber = $("#countrycode").val().trim()+""+$("#contactNumber").val().trim();
+		//contactNumber = contactNumber.substring(1);
+		var contactEmail = $("#contactEmail").val().trim();
+		var c1 = $("#countrycode").val().trim();
+		var c2 = $("#contactNumber").val().trim();
+		if(parseInt(c2[0])==0 && (c1=="+255" || c1=="+258" || c1=="+254" || c1=="+256" || c1=="+262"))
+			c2=c2.substring(1);
+		var c3 = parseInt(c2);
+		var contactNumber = c1.concat(c3);
+		contactNumber = contactNumber.substring(1);
+		
+		if(contactNumber.length < 12) {
+			alert("Please check your contact number.");
+			return false;
+		}
+		
+		if(contactEmail != "" && !validateEmail(contactEmail)) {
+			alert("Please check you email id or keep it blank.");
+			return false;
+		}
+		
+		if(acceptPhoneNumber == 1) {
+			var payContactNumber = $("#"+paycode+"_"+section).val().trim();
+			if(payContactNumber.length < 9) {
+				alert("Please check your pay phone number.");
+				return false;
+			}
+			if(payContactNumber.length==10 && paycode!="AZAM-AZAMPESA")
+			{
+				if(parseInt(payContactNumber[0])!=0)
+				{
+					alert("Please check your pay phone number.");
+					return false;
+				}
+			}
+			if(paycode=="AZAM-AZAMPESA" && payContactNumber.length!=10)
+			{
+				alert("Please check your pay phone number.");
+				return false;
+			}
+			if(parseInt(payContactNumber[0])==0)
+				payContactNumber=payContactNumber.substring(1);
+			if(paycode.substring(0, 3)=="DPO")
+				payContactNumber="254"+payContactNumber;
+			else
+				payContactNumber="255"+payContactNumber;
+		}
+	
+		if(acceptPhoneNumber == 0) {
+			proceedToBook(contactNumber, contactEmail, paycode, "");
+		} else {
+			proceedToBook(contactNumber, contactEmail, paycode, payContactNumber);
+		}
+	} else {
+		alert("Please accept the term and conditions");
+		return false;
+	}
+}
+function OpenClose_Modal(paycode, type)
+{
+	switch(paycode)
+	{
+		case "AZAM-AZAMPESA":
+			if(parseInt(type)==1)
+			{
+				$("#azampesa").modal({backdrop: 'static', keyboard: false}, 'show');
+			}
+			else
+			{
+				$("#azampesa").modal('hide');
+			}
+			break;
+		case "AZAM-AIRTEL":
+        case "SELCOM-AIRTEL":
+			if(parseInt(type)==1) 
+			{
+				$("#modalAirtel").modal({backdrop: 'static', keyboard: false}, 'show');
+			}
+			else
+			{
+				$("#modalAirtel").modal('hide');
+			}
+			break;
+		case "AZAM-TIGO":
+        case "SELCOM-TIGO":
+			if(parseInt(type)==1)
+			{
+				$("#modalTIGO").modal({backdrop: 'static', keyboard: false}, 'show');
+			}
+			else
+			{
+				$("#modalTIGO").modal('hide');
+			}
+			break;
+		case "AZAM-HALOPESA":
+        case "SELCOM-HALOPESA":
+			if(parseInt(type)==1)
+			{
+				$("#modalHalopesa").modal({backdrop: 'static', keyboard: false}, 'show');
+			}
+			else
+			{
+				$("#modalHalopesa").modal('hide');
+			}
+		case "AZAM-MPESA":
+        case "SELCOM-MPESA":
+			if(parseInt(type)==1)
+			{
+				$("#modalMPESA").modal({backdrop: 'static', keyboard: false}, 'show');
+			}
+			else
+			{
+				$("#modalMPESA").modal('hide');
+			}
+			break;
+		default:
+			if(parseInt(type)==1)
+				$("#busBackground,).show();
+			else
+				$("#busBackground,).hide();
+			break;
+	}
+}
+function proceedToBook(contactNumber, contactEmail, paycode, payPhoneNumber) {
+	var key = encrypt(jsrd, contactNumber+contactEmail+paycode+payPhoneNumber+srd+rd);
+	var data = "contactNumber="+contactNumber+"&contactEmail="+contactEmail+"&paycode="+paycode+"&key="+key+"&payPhoneNumber="+payPhoneNumber;
+	OpenClose_Modal(paycode, 1);
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_proceedToBook",
+		data: data,
+		success: function(response) {
+			OpenClose_Modal(paycode, 0);
+			response = JSON.parse(response);
+			if(response["status"] == 200) {
+				window.location.href = "bus_reservation_success";
+			}else if(parseInt(response["status"])==202){
+				window.location.href = response["url"]; 
+			} else {
+				alert(response["message"]);
+				window.location.href = "404";
+			}
+		}
+	});
+}
+
+function fun_validate_migs() {
+	var ctyp = document.getElementById('card_type');
+	var cno = document.getElementById('cardno');
+	var cexp = document.getElementById('cardexp');
+	var ccvv = document.getElementById('cardcvv');
+	var agrmt = document.getElementById('mg_term');
+	var cexpmonth = document.getElementById('expiryMonth');
+	var cexpyear = document.getElementById('expiryYear');
+	
+	if(ctyp.value=="") {
+		alert("Please choose card type!!");
+		ctyp.focus();
+		return false;
+	}
+	
+	if(cno.value == "" || cno.value.length < 16) {
+		alert("Please enter valid Card no!!");
+		cno.focus();
+		return false;
+	}
+	
+	if(cexpmonth.value == "" || cexpyear.value == "") {
+		alert("Please enter valid card expiry date!!");
+		cexpyear.focus();
+		return false;
+	} else {
+		var currentDate = new Date();
+		var currentMonth = currentDate.getMonth() + 1;
+		var currentYear = currentDate.getFullYear();
+		if(currentYear == parseInt("20"+""+cexpyear.value) && parseInt(cexpmonth.value) < currentMonth) {
+			alert("Invalid card expiry details or the card has expired!!");
+			cexpyear.focus();
+			return false;
+		} else {
+			cexp.value = cexpyear.value + "" + cexpmonth.value;
+		}
+	}
+	
+	if(ccvv.value == "" || ccvv.length < 3) {
+		alert("Please enter card security code(CVV)!!");
+		ccvv.focus();
+		return false;
+	}
+	
+	if(agrmt.checked == false) {
+		alert("Please accept bmcoach terms and conditions!!")
+		agrmt.focus();
+		return false;
+	}
+	return true;
+}
+	
+function openLoginContainer() {
+	$("#login").modal('show');
+}
+
+function loadPassengerUserDetails() {
+	var countryCode = "";
+	
+	if(document.getElementById("fetchUserDetails").checked == true) {
+		$("#full_name_0_0").val(custFirstName+" "+custMiddleName+" "+custLastName).trigger("change");
+		
+		if(isRoundTrip == 1) {
+			$("#full_name_1_0").val(custFirstName+" "+custMiddleName+" "+custLastName).trigger("change");
+		}
+		$(".checkTextChange").addClass("active");
+	} else {
+		$("#full_name_0_0").val("").trigger("change");
+		
+		if(isRoundTrip == 1) {
+			$("#full_name_1_0").val("").trigger("change");
+		}
+		$(".checkTextChange").removeClass("active");
+	}
+}
+
+function submitPassengerDetails() {
+	onwardPassengerDetails = [];
+	returnPassengerDetails = [];
+	
+	for(i = 0; i < onwardSelectedSeatsCount; i++) {
+		var passengerName = $("#full_name_0_"+i).val().trim();
+		var passengerGender = $("#gender_0_"+i).val().trim();
+		var passengerCategory = $("#category_0_"+i).val().trim();
+		var passengerSeatId = $("#seatId_0_"+i).val().trim();
+		var passengerCountryCode = "";
+		var passengerMobile = "";
+		var passengerPassport = "";
+		var passengerEmail = "";
+		
+		if(isSameCountry == 0) {
+			passengerPassport = $("#passport_0_"+i).val().trim();
+		}
+		
+		if(validatePassengerDetails(passengerName, passengerGender, passengerCategory, passengerSeatId, passengerCountryCode, passengerMobile, passengerPassport, passengerEmail, i, 0)) {
+			onwardPassengerDetails.push({"name": passengerName, "gender": passengerGender, "category": passengerCategory, "mobile": passengerMobile, "passport": passengerPassport, "seat_id": passengerSeatId, "email": passengerEmail});
+			
+			if(isRoundTrip == 1 && passengerDetailsAcceptMultiple == 0) {
+				passengerSeatId = $("#seatId_1_"+i).val().trim();
+				returnPassengerDetails.push({"name": passengerName, "gender": passengerGender, "category": passengerCategory, "mobile": passengerMobile, "passport": passengerPassport, "seat_id": passengerSeatId, "email": passengerEmail});
+			}
+		} else {
+			return false;
+		}
+	}
+	
+	if(isRoundTrip == 1 && passengerDetailsAcceptMultiple == 1) {
+		returnPassengerDetails = [];
+		
+		for(i = 0; i < returnSelectedSeatsCount; i++) {
+			var passengerName = $("#full_name_1_"+i).val().trim();
+			var passengerGender = $("#gender_1_"+i).val().trim();
+			var passengerCategory = $("#category_1_"+i).val().trim();
+			var passengerSeatId = $("#seatId_1_"+i).val().trim();
+			var passengerCountryCode = "";
+			var passengerMobile = "";
+			var passengerPassport = "";
+			var passengerEmail = "";
+		
+			if(isSameCountry == 0) {
+				passengerPassport = $("#passport_1_"+i).val().trim();
+			}
+			
+			if(validatePassengerDetails(passengerName, passengerGender, passengerCategory, passengerSeatId, passengerCountryCode, passengerMobile, passengerPassport, passengerEmail, i, 1)) {
+				returnPassengerDetails.push({"name": passengerName, "gender": passengerGender, "category": passengerCategory, "mobile": passengerMobile, "passport": passengerPassport, "seat_id": passengerSeatId, "email": passengerEmail});
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	var key = encrypt(jsrd, JSON.stringify(onwardPassengerDetails)+JSON.stringify(returnPassengerDetails)+set+srd+rd);
+	var data = "onwardPassengerDetails="+JSON.stringify(onwardPassengerDetails)+"&returnPassengerDetails="+JSON.stringify(returnPassengerDetails)+"&key="+key+"&set="+set;
+	
+	$("#busBackground,).show();
+	
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_verifyValues",
+		data: data,
+		success: function(response) {
+			$("#busBackground,).hide();
+			response = JSON.parse(response);
+			if(response["status"] == 200) {
+				window.location.href = "bus_payment";
+			} else {
+				alert(response["message"]);
+			}
+		}
+	});
+}
+
+function copyPassengerDetails() {
+	var lowestSeatCount = 0;
+	var copyPassengerDetails = 1;
+	
+	if(document.getElementById("copyPassengerDetails").checked == true) {
+		copyPassengerDetails = 1;
+	} else {
+		copyPassengerDetails = 0;
+	}
+	
+	if(onwardSelectedSeatsCount <= returnSelectedSeatsCount) {
+		lowestSeatCount = onwardSelectedSeatsCount;
+	} else {
+		lowestSeatCount = returnSelectedSeatsCount;
+	}
+	
+	if(copyPassengerDetails == 1) {
+		for(i = 0; i < lowestSeatCount; i++) {
+			$("#full_name_1_"+i).val($("#full_name_0_"+i).val()).trigger("change");;
+			$("#gender_1_"+i).val($("#gender_0_"+i).val());
+			$("#category_1_"+i).val($("#category_0_"+i).val());
+			
+			if(isSameCountry == 0) {
+				$("#passport_1_"+i).val($("#passport_0_"+i).val()).trigger("change");;
+			}
+		}
+	} else {
+		for(i = 0; i < lowestSeatCount; i++) {
+			$("#full_name_1_"+i).val("");
+			$("#gender_1_"+i).val("");
+			$("#category_1_"+i).val("");
+			
+			if(isSameCountry == 0) { 
+				$("#passport_1_"+i).val("");
+			}
+		}
+	}
+	
+	//$(".select_dropdown").formSelect();
+}
+
+function validatePassengerDetails(passengerName, passengerGender, passengerCategory, passengerSeatId, passengerCountryCode, passengerMobile, passengerPassport, passengerEmail, i, journeyType) {
+	if(passengerName.length == 0) {
+		alert("Please check passengers name and try again.");
+		$("#full_name_"+journeyType+"_"+i).focus();
+		return false;
+	}
+	
+	if(passengerGender.length == 0) {
+		alert("Please select passengers gender.");
+		$("#gender_"+journeyType+"_"+i).focus();
+		return false;
+	}
+	
+	if(passengerCategory.length == 0) {
+		alert("Please select passengers category.");
+		$("#category_"+journeyType+"_"+i).focus();
+		return false;
+	}
+	
+	if(passengerCountryCode.length == 0 && i == -1) {
+		alert("Please select primary passengers country code for mobile number.");
+		return false;
+	}
+	
+	if(passengerMobile.length < 12 && i == -1) {
+		alert("Please enter primary passengers mobile number with correct country code.");
+		return false;
+	}
+	
+	if(isSameCountry == 1 && passengerPassport.length != 0 && passengerPassport.length < 8) {
+		alert("Please check your passport number or keep it empty.");
+		return false;
+	}
+	
+	if(isSameCountry == 0 && passengerPassport.length < 8) {
+		alert("Please check your passport details and try again. Passport is mandatory when travelling to another country.");
+		$("#passport_"+journeyType+"_"+i).focus();
+		return false;
+	}
+	
+	if(passengerEmail != "" && !validateEmail(passengerEmail)) {
+		alert("Please check you email id or keep it blank.");
+		return false;
+	}
+	
+	return true;
+}
+
+function clearUserSelectedSeats(type, loader) {
+	$("#busBackground,).show();
+	
+	var data = "type="+type;
+	
+	$.ajax({
+		type: "POST",
+		url: "bus/bus_clearSeats",
+		data: data,
+		success: function(response) {
+			if(loader == 1) {
+				$("#busBackground,).hide();
+			}
+		}
+	});
+}
+
+$(function () {
+	var href = document.location.href;
+	var lastPathSegment = href.substr(href.lastIndexOf('/') + 1).split("?")[0];
+	
+	/*
+    $(window).on('beforeunload', function () {
+        if(lastPathSegment == "bus_search") {
+            clearUserSelectedSeats(0, 1);
+        }
+    });
+	
+	$(window).on('popstate', function(event) {
+		if(lastPathSegment == "bus_search") {
+            clearUserSelectedSeats(0, 1);
+        }
+    });
+	*/
+	
+    $(document).on('click', 'a[href]', function () {
+     	if(!$(this).hasClass("preventSeatsClear")) {
+	        clearUserSelectedSeats(0, 1);
+	    }
+    });
+});
+
+$(window).resize(function() {
+    fluidDialog();
+});
+
+// catch dialog if opened within a viewport smaller than the dialog width
+$(document).on("dialogopen", ".ui-dialog", function (event, ui) {
+    fluidDialog();
+});
+
+function fluidDialog() {
+    var $visible = $(".ui-dialog:visible");
+	
+    // each open dialog
+    $visible.each(function () {
+        var $this = $(this);
+		var dialog = $this.find(".ui-dialog-content").data("ui-dialog");
+		
+		$this.css("max-width", dialog.options.maxWidth);
+		$this.css("width", "90%");
+		dialog.option("position", dialog.options.position);
+    });
+}
+function restrictNameInput(event) {
+	// Remove any character that is not a letter (A-Z or a-z)
+	event.target.value = event.target.value.replace(/[^A-Za-z ]/g, '');
+}

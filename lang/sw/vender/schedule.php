@@ -1,0 +1,40 @@
+<?php
+
+return [
+    // From schedules.blade.php (new keys)
+    'bus_schedules' => 'Ratiba za Mabasi',
+    'add_new_schedule' => 'Ongeza Ratiba Mpya',
+    'add_new_schedule_aria' => 'Ongeza ratiba mpya',
+    'time_24hrs' => 'Saa (24HRS)',
+    'schedule_date' => 'Tarehe ya Ratiba',
+    'edit_schedule' => 'Hariri Ratiba',
+    'delete_schedule' => 'Futa Ratiba',
+    'view_schedule' => 'Ona Ratiba',
+    'schedule_details' => 'Maelezo ya Ratiba',
+    'close_modal' => 'Funga Dirisha Ibukizi',
+    'na' => 'Haijulikani',
+    'confirm_delete_schedule' => 'Una uhakika unataka kufuta ratiba hii?',
+    'bus' => 'Basi',
+    'from' => 'Kutoka',
+    'to' => 'Kwenda',
+    'action' => 'Hatua',
+    'via' => 'Kupitia',
+    // From edit_schedule.blade.php (new keys)
+    'edit_bus_schedule' => 'Hariri Ratiba ya Basi',
+    'back_to_schedules' => 'Rudi kwenye Ratiba',
+    'departure_time' => 'Muda wa Kuondoka',
+    'arrival_time' => 'Muda wa Kufika',
+    'update_schedule' => 'Sasisha Ratiba',
+    // From add_schedule.blade.php (new keys)
+    'lock' => 'Funga',
+    'unlock' => 'Fungua',
+    'remove' => 'Ondoa',
+    'add_another_schedule' => 'Ongeza Ratiba Nyingine',
+    'select_from' => 'Chagua Kutoka',
+    'select_to' => 'Chagua Kwenda',
+    'no_unbooked_schedules' => 'Hakuna ratiba ambazo hazijawekwa kwa basi hili.',
+    'failed_to_fetch_schedules' => 'Imeshindwa kupata ratiba:',
+    'select_route' => 'Chagua Njia',
+    'select_bus' => 'Chagua Basi',
+    'save_schedule' => 'Hifadhi Ratiba',
+];

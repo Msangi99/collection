@@ -1,0 +1,898 @@
+var MD5 = new Hashes.MD5;
+var SHA1 = new Hashes.SHA1;
+var SHA256 = new Hashes.SHA256;
+var SHA512 = new Hashes.SHA512;
+var RMD160 = new Hashes.RMD160;
+
+function random_string(len) {
+    var str = "abcdefghijklmnopqrstuvwxyz0123456789";
+    var random_str = "";
+    for (i = 0; i < len; i++)
+        random_str += str.charAt(Math.floor(Math.random() * str.length));
+    if (random_str.length == len)
+        return random_str;
+    else
+        random_string(len);
+}
+
+function encrypt(i, str) {
+    switch (parseInt(i)) {
+        case 1:
+            return MD5.hex(SHA512.hex(MD5.hex(str)));
+            break;
+        case 2:
+            return SHA1.hex(SHA512.hex(MD5.hex(str)));
+            break;
+        case 3:
+            return SHA256.hex(SHA512.hex(MD5.hex(str)));
+            break;
+        case 4:
+            return SHA512.hex(SHA512.hex(MD5.hex(str)));
+            break;
+        case 5:
+            return RMD160.hex(SHA512.hex(MD5.hex(str)));
+            break;
+    }
+}
+
+function fun_cnvrt_uppercase(evt) {
+    evt.value = evt.value.toUpperCase();
+}
+
+function capitalize(ele) {
+    var splt = ele.value.split(" ");
+    var str = "";
+    for (i = 0; i < splt.length; i++) {
+        if (i != 0)
+            str += " ";
+        str += splt[i].charAt(0).toUpperCase() + splt[i].slice(1).toLowerCase();
+    }
+    ele.value = str;
+}
+
+function char_num(evt) {
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if ((charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123) || (charCode > 47 && charCode < 58) || (charCode === 8))
+        return true;
+    else
+        return false;
+}
+
+function charonly(evt) {
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if ((charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123) || (charCode == 32) || (charCode === 8))
+        return true;
+    else
+        return false;
+}
+
+function isONumber(evt, element) {
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if ((charCode < 48 || charCode > 57)) {
+        if (charCode === 8) {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+function isNumber(evt, element) {
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if ((charCode != 46 || $(element).val().indexOf('.') != -1) && (charCode < 48 || charCode > 57)) {
+        if (charCode === 8) {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+function check_plus(id) {
+    if (document.getElementById(id).value.trim() == "") {
+        document.getElementById(id).value = "+";
+    } else {
+        var mobno = document.getElementById(id).value;
+        if (mobno.charAt(0) != "+") {
+            document.getElementById(id).value = "+";
+        }
+    }
+}
+
+function check_plus_tanz(id) {
+    if (document.getElementById(id).value.trim() == "" || document.getElementById(id).value.length < 3) {
+        document.getElementById(id).value = "+255";
+    } else {
+        var mobno = document.getElementById(id).value;
+        if (mobno.charAt(0) != "+" || mobno.charAt(1) != "2" || mobno.charAt(2) != "5" || mobno.charAt(3) != "5") {
+            document.getElementById(id).value = "+255";
+        }
+    }
+}
+
+//document.getElementById('closeButton').addEventListener('click',function(e){e.preventDefault();$("#hidden_content").slideUp('slow');},false);document.getElementById('Cust_Mob').addEventListener('input',function(event){if(this.value>13)
+//this.value=this.value.substr(0,13);else
+//this.value="+"+this.value.replace(/[^0-9]/g,'');});
+
+function charonly(evt) {
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if ((charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123) || (charCode == 32) || (charCode === 8))
+        return true;
+    else
+        return false;
+}
+
+function isONumber(evt, element) {
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if ((charCode < 48 || charCode > 57)) {
+        if (charCode === 8) {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+function check_plus(id) {
+    if (document.getElementById(id).value.trim() == "") {
+        document.getElementById(id).value = "+";
+    } else {
+        var mobno = document.getElementById(id).value;
+        if (mobno.charAt(0) != "+") {
+            document.getElementById(id).value = "+";
+        }
+    }
+}
+
+function fun_set_focus(evt) {
+    setTimeout(function() {
+        evt.selectionStart = evt.selectionEnd = evt.value.length
+    }, 0);
+}
+
+function capitalize(ele) {
+    var splt = ele.value.split(" ");
+    var str = "";
+    for (i = 0; i < splt.length; i++) {
+        if (i != 0)
+            str += " ";
+        str += splt[i].charAt(0).toUpperCase() + splt[i].slice(1).toLowerCase();
+    }
+    ele.value = str;
+}
+
+function validate_cust_signup() {
+    var Cust_Name = document.getElementById('Cust_Name');
+    var Cust_Email = document.getElementById('Cust_Email');
+    var Cust_Mobile = document.getElementById('Cust_Mob');
+    var Cust_Pswd = document.getElementById('Cust_Pswd');
+    var Cust_Cnf_Pswd = document.getElementById('Cust_Cnf_pswd');
+    if (Cust_Name.value.trim() == "") {
+        alert("Please enter your name!!");
+        Cust_Name.focus();
+        return false;
+    }
+    if (Cust_Email.value.trim() == "") {
+        alert("Please enter your email id!!");
+        Cust_Email.focus();
+        return false;
+    }
+    if (Cust_Email.value != "") {
+        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        var em = Cust_Email.value;
+        if (!(em.match(mailformat))) {
+            alert("You have entered an invalid email address!");
+            Cust_Email.focus();
+            return false;
+        }
+    }
+    if (Cust_Mobile.value.trim() == "" || Cust_Mobile.value.length < 13) {
+        alert("Please enter your phone number with ISD code!!");
+        Cust_Mobile.focus();
+        return false;
+    }
+    if (Cust_Pswd.value.trim() == "" || Cust_Pswd.value.length < 8) {
+        alert("Please enter password, minimum password length is 8!!");
+        Cust_Pswd.focus();
+        return false;
+    }
+    if (Cust_Cnf_Pswd.value.trim() == "" || Cust_Cnf_Pswd.value.length < 8) {
+        alert("Please enter your password again to confirm!!");
+        Cust_Cnf_Pswd.focus();
+        return false;
+    }
+    if (Cust_Pswd.value != Cust_Cnf_Pswd.value) {
+        alert("Entered password does not match with confirm password!! Please re enter same!!");
+        Cust_Cnf_Pswd.value = "";
+        Cust_Cnf_Pswd.focus();
+        return false;
+    }
+	
+	Cust_Name = Cust_Name.value;
+	Cust_Email = Cust_Email.value;
+	Cust_Mobile = Cust_Mobile.value;
+    var pswd = random_string(4) + MD5.hex(SHA512.hex(Cust_Pswd.value)) + random_string(4);
+    var key = encrypt(jsrd, Cust_Name + Cust_Email + (Cust_Mobile).substring(1, 13) + pswd + srd + rd);
+	
+	$("#close").trigger("click");
+	setTimeout(function() {
+		$('#processingYourRequest').modal('show');
+	}, 300);
+	
+    $.ajax({
+        url: 'signup?key=' + hash_key + '&hash=' + key + '&name=' + Cust_Name + '&email=' + Cust_Email + '&mobile=' + (Cust_Mobile).substring(1, 13) + '&pswd=' + pswd,
+        type: 'GET',
+        success: function(response) {
+			$('#processingYourRequest').modal('hide');
+			passwordStatus(0);
+			
+            switch (parseInt(response)) {
+                case 200:
+                    //alert("Your account created successfully!! Please verify your email and proceed to login!!");
+					openModalAlert("images/checked-model1.png", "Congratulations!!", "Your account created successfully!! Please verify your email and proceed to login!!", 0);
+                    break;
+                case 401:
+                    /*alert("Your account already exists!! Please login!!");
+					setTimeout(function() {
+						$('#login').modal('open');
+						$('#login').addClass("loginPopupCSS");
+					}, 300);
+					*/
+					openModalAlert("images/cross-model1.png", "Error!!", "Your account already exists!! Please login!!", 1);
+                    break;
+                case 400:
+					/*
+                    alert("Your account already exists!! We've sent an email to verify your account! Please verify and proceed to login!!");
+					setTimeout(function() {
+						$('#login').modal('open');
+						$('#login').addClass("loginPopupCSS");
+					}, 300);
+					*/
+					openModalAlert("images/cross-model1.png", "Error!!", "Your account already exists!! We've sent an email to verify your account! Please verify and proceed to login!!", 1);
+                    break;
+                default:
+                    //alert("OOPs something went wrong!! Please try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "OOPs something went wrong!! Please try again!!", 0);
+                    break;
+            }
+        }
+    });
+}
+
+function show_hide_pswd(evt, pswd_id, msg_id) {
+    if (evt.checked === true) {
+        document.getElementById(pswd_id).type = "text";
+        document.getElementById(msg_id).innerHTML = "Hide Password";
+    } else {
+        document.getElementById(pswd_id).type = "password";
+        document.getElementById(msg_id).innerHTML = "Show Password";
+    }
+}
+
+function signin_user() {
+    var user_id = document.getElementById('email_mobile');
+    var pswd = document.getElementById('lgn_pswd');
+    if (user_id.value.trim() == "" || user_id.value.length > 150) {
+        alert("Please enter your registered e-Mail!!");
+        user_id.focus();
+        return false;
+    }
+    if (user_id.value != "") {
+        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        var em = user_id.value;
+        if (!(em.match(mailformat))) {
+            alert("You have entered an invalid email address!");
+            user_id.focus();
+            return false;
+        }
+    }
+    if (pswd.value.trim() == "" || pswd.value.length < 8 || pswd.value.length > 12) {
+        alert("Please enter your password!!. Minimum length 8 and maximum length 12 characters!!");
+        user_id.focus();
+        return false;
+    }
+	
+	user_id = user_id.value;
+    pswd = random_string(4) + MD5.hex(SHA512.hex(pswd.value)) + random_string(4);
+    var key = encrypt(jsrd, user_id + pswd + srd + rd);
+	
+	$("#close").trigger("click");
+	setTimeout(function() {
+		$('#processingYourRequest').modal('show');
+	}, 300);
+	
+    $.ajax({
+        url: 'signin?key=' + hash_key + '&hash=' + key + '&userid=' + user_id + '&pswd=' + pswd,
+        type: 'GET',
+        success: function(response) {
+			$('#processingYourRequest').modal('hide');
+			
+            switch (parseInt(response)) {
+                case 200:
+                    window.location.reload();
+                    break;
+                case 402:
+					/*
+                    alert("Please enter valid password!!");
+					setTimeout(function() {
+						$('#login').modal('open');
+						$('#login').addClass("loginPopupCSS");
+					}, 300);
+					*/
+					openModalAlert("images/cross-model1.png", "Error!!", "Please enter valid password!!!!", 1);
+                    break;
+                case 201:
+                    //alert("Your account is not verified!! Please verify and try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "Your account is not verified!! Please verify and try again!!", 1);
+                    break;
+                case 400:
+                    //alert("Your account is blocked!! Please contact us to un-block your account!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "Your account is blocked!! Please contact us to un-block your account!!", 0);
+                    break;
+                case 401:
+					/*
+                    alert("Invalid email id, Please enter valid one and try again!!");
+					setTimeout(function() {
+						$('#login').modal('open');
+						$('#login').addClass("loginPopupCSS");
+					}, 300);
+					*/
+					openModalAlert("images/cross-model1.png", "Error!!", "Invalid email id, Please enter valid one and try again!!", 1);
+                    break;
+                default:
+                    //alert("OOPs something went wrong!! Please try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "OOPs something went wrong!! Please try again!!", 0);
+                    break;
+            }
+        }
+    });
+}
+
+function reset_pswd() {
+    var user_id = document.getElementById('reset_email');
+    if (user_id.value.trim() == "" || user_id.value.length > 150) {
+        alert("Please enter your valid registered e-Mail!!");
+        user_id.focus();
+        return false;
+    }
+    if (user_id.value != "") {
+        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        var em = user_id.value;
+        if (!(em.match(mailformat))) {
+            alert("You have entered an invalid email address!");
+            user_id.focus();
+            return false;
+        }
+    }
+	
+	user_id = user_id.value;
+    var key = encrypt(jsrd, user_id + srd + rd);
+	
+	$("#close").trigger("click");
+	setTimeout(function() {
+		$('#processingYourRequest').modal('show');
+	}, 300);
+	
+    $.ajax({
+        url: 'reset_account?key=' + hash_key + '&hash=' + key + '&userid=' + user_id,
+        type: 'GET',
+        success: function(response) {
+			$('#processingYourRequest').modal('hide');
+			passwordStatus(0);
+			
+            switch (parseInt(response)) {
+                case 200:
+                    //alert("We have successfully sent verify link to reset your password!!");
+					openModalAlert("images/checked-model1.png", "Congratulations!!", "We have successfully sent verify link to reset your password!!", 0);
+                    break;
+                case 401:
+					passwordStatus(1);
+					/*
+                    alert("Your account does not exist, Please signup!!");
+					setTimeout(function() {
+						$('#login').modal('open');
+						$('#login').addClass("loginPopupCSS");
+					}, 300);
+					*/
+					openModalAlert("images/cross-model1.png", "Error!!", "Your account does not exist, Please signup!!", 1);
+                    break;
+                case 400:
+                    //alert("Your account is blocked!! Please contact us to un-block your account!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "Your account is blocked!! Please contact us to un-block your account!!", 0);
+                    break;
+                default:
+                    //alert("OOPs something went wrong!! Please try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "OOPs something went wrong!! Please try again!!", 0);
+                    break;
+            }
+        }
+    });
+}
+
+function Check_Enter(evt) {
+    if (evt.keyCode == 13) {
+        signin_user();
+    }
+    return true;
+}
+
+function passwordStatus(selectedOption) {
+	if(selectedOption == 0) {
+		$("#signInTab").show();
+		$("#signUpTab").hide();
+		$("#forgotPassTab").hide();
+	}
+	
+	if(selectedOption == 1) {
+		$("#signInTab").hide();
+		$("#signUpTab").show();
+		$("#forgotPassTab").hide();
+	}
+	
+	if(selectedOption == 2) {
+		$("#signInTab").hide();
+		$("#signUpTab").hide();
+		$("#forgotPassTab").show();
+	}
+}
+
+$(window).load(function() {
+    $('#myDiv').show();
+	$("#login").modal();
+	$("#writeToUs").modal();
+	$("#processingYourRequest").modal();
+	$("#socialSharePopUp").modal();
+	$("#serviceNotAvailable").modal();
+	$("#modalAlert").modal();
+	
+	$(".externalModal").click(function() {
+		var id = $(this).attr('id');
+		
+		if(id == "login") {
+			$('#email_mobile').val("");
+			$('#lgn_pswd').val("");
+			$('#reset_email').val("");
+			$('#Cust_Name').val("");
+			$('#Cust_Email').val("");
+			$('#Cust_Mob').val("+");
+		}
+		
+		if(id == "writeToUs") {
+			$('#writeToUsName').val("");
+			$('#writeToUsEmail').val("");
+			$('#writeToUsMessage').val("");
+		}
+		
+		$("#"+id).modal('hide');
+	}).children().click(function(e) {
+		if(!$(e.target).is('.close') && !$(e.target).is('.close span')) {
+			return false;
+		}
+	});
+	
+	function topBarSearch(request, response) {
+		function hasMatch(s) {
+			return s.toLowerCase().indexOf(request.term.toLowerCase()) >= 0;
+		}
+		var i, len, obj, matches = [];
+
+		if(request.term === "") {
+			response([]);
+			return;
+		}
+
+		for(i = 0, len = searchList.length; i < len; i++) {
+			obj = searchList[i];
+			if (hasMatch(obj.productDescription)) {
+				matches.push(obj);
+			}
+		}
+
+		response(matches);
+	}
+
+	if($("#searchWeb").length > 0) {
+		jQuery("#searchWeb").autocomplete({
+			source: topBarSearch,
+			select: function(event, ui) {
+				window.location.href = ui.item.url;
+			}
+		}).data("ui-autocomplete")._renderItem = function(ul, item) {
+			return $("<li></li>")
+			.data("item.autocomplete", item)
+			.append("<div style='margin: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'><div>"+item.productDescription+"</div></div>")
+			.appendTo(ul);
+		};
+	}
+
+	if($('.showPreventPopup').length > 0) {
+		$('.showPreventPopup').on('click', function(e) {
+			if($(e.target).is('.sharetosocialmedia')) {
+				e.preventDefault();
+			}
+		});
+	}
+	
+	setTimeout(function() {
+		$('#mdb-preloader').hide();
+	}, 500);
+});
+
+function openLoginContainer() {
+	passwordStatus(0);
+	$('#login').modal('show');
+}
+
+function closeLoginContainer() {
+	$('#email_mobile').val("");
+	$('#lgn_pswd').val("");
+	$('#reset_email').val("");
+	$('#Cust_Name').val("");
+	$('#Cust_Email').val("");
+	$('#Cust_Mob').val("+");
+	$('#login').modal('hide');
+}
+
+function openWriteToUs() {
+	$('#writeToUs').modal('show');
+}
+
+function closeWriteToUs() {
+	$('#writeToUs').modal('hide');
+}
+
+function openModalAlert(imgsrc, title, msg, type) {
+	setTimeout(function() {
+		$('#modalAlert').modal('show');
+		$("#modalAlertImg").attr("src", imgsrc);
+		$('#modalAlertTitle').html(title);
+		$('#modalAlertMsg').html(msg);
+		$("#modelAlertAction").val(type);
+	}, 300);
+}
+
+function closeModalAlert() {
+	var type = $("#modelAlertAction").val();
+	$('#modalAlert').modal('hide');
+	
+	if(type == 1) {
+		setTimeout(function() {
+			$('#login').modal('show');
+		}, 300);
+	}
+}
+
+function sendWriteToUsMessage() {
+	// if($("#contactus_writeToUsSubject").length > 0) {
+	// 	var contactsubject = "";
+	// 	var contactemail = document.getElementById('contactus_writeToUsSubject');
+	// 	var contactname = document.getElementById('contactus_writeToUsEmail');
+	// 	var contactmessage = document.getElementById('contactus_writeToUsMessage');
+	// } else {
+	// 	//var contactname = document.getElementById('writeToUsName');
+	// 	//var contactsubject = "";
+	// 	//var contactemail = document.getElementById('writeToUsEmail');
+	// 	//var contactmessage = document.getElementById('writeToUsMessage');
+	// }
+
+    let btn = document.getElementById("contact-us-btn");
+    btn.disabled = true;
+    let loader = document.getElementById("contact-loader");
+    loader.style.display = "block";
+
+    var contactsubject = document.getElementById('contactus_writeToUsSubject');
+    var contactemail = document.getElementById('contactus_writeToUsEmail');
+    var contactname = document.getElementById('contactus_fullname');
+    var contactmessage = document.getElementById('contactus_writeToUsMessage');
+
+	if(contactemail.value.trim() == "" || contactemail.value.length > 150) {
+        alert("Please enter your correct email!!");
+        contactemail.focus();
+        return false;
+    }
+	
+    if(contactsubject.value.trim() == "" || contactsubject.value.length > 30) {
+        alert("Please enter your subject!!");
+        contactsubject.focus();
+        return false;
+    }
+
+    if(contactname.value.trim() == "") {
+        alert("Please enter your name!!");
+        contactname.focus();
+        return false;
+    }
+
+    if(contactmessage.value.trim() == "") {
+        alert("Please enter your msg!!");
+        contactmessage.focus();
+        return false;
+    }
+
+	// console.log("name",contactname);
+	// console.log("email",contactemail);
+	// console.log("msg",contactmessage);
+    if(contactemail.value != "") {
+        console.log(contactemail);
+        // var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        var mailformat = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+        var em = contactemail.value;
+        if(!(em.match(mailformat))) {
+            alert("You have entered an invalid email address!");
+            contactemail.focus();
+            return false;
+        }
+    }
+	
+    if(contactmessage.value.trim() == "" || contactmessage.value.length < 2 || contactmessage.value.length > 300) {
+        alert("Please enter your message of maximum 300 characters!!");
+        contactmessage.focus();
+        return false;
+    }
+	
+    //$('#req_modal').modal("show");
+	$('#processingYourRequest').modal('show');
+	
+    var key = encrypt(jsrd, contactname.value.trim() + contactsubject.value.trim() + contactemail.value.trim() + contactmessage.value.trim() + srd + rd);
+	var data = 'key=' + hash_key + '&hash=' + key + '&name=' + contactname.value.trim() + '&subject=' + contactsubject.value.trim() + '&email=' + contactemail.value.trim() + '&message=' + contactmessage.value.trim() + '&type=0';
+	
+    $.ajax({
+		type: 'POST',
+        url: 'email_contactUs',
+		data: data,
+        success: function(response) {
+            // console.log("Response = ",response);
+            //$('#req_modal').modal("hide");
+            loader.style.display = "none";
+            btn.disabled = false;
+			$('#processingYourRequest').modal('hide');
+			contactname.value = contactsubject.value = contactemail.value = contactmessage.value = "";
+			
+            switch (parseInt(response)) {
+                case 200:
+                    alert("Your email is sent, you will be contacted at the earliest possible!!");
+					openModalAlert("images/checked-model1.png", "Congratulations!!", "Your email is sent, you will be contacted at the earliest possible!!", 0);
+                    break;
+                case 404:
+                    alert("Oop's something went wrong and we could not send your email. Please try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "Oop's something went wrong and we could not send your email. Please try again!!", 0);
+                    break;
+                default:
+                    //alert("OOPs something went wrong!! Please try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "OOPs something went wrong!! Please try again!!", 0);
+                    break;
+            }
+            return false;
+        }
+    });
+}
+
+function sendPartnerWithUsMessage() {
+    var email = document.getElementById('partnerWithUsEmail');
+	
+	if(email.value.trim() == "" || email.value.length > 150) {
+        alert("Please enter your correct email!!");
+        email.focus();
+        return false;
+    }
+	
+    if(email.value != "") {
+        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        var em = email.value;
+        if(!(em.match(mailformat))) {
+            alert("You have entered an invalid email address!");
+            email.focus();
+            return false;
+        }
+    }
+	
+    //$('#req_modal').modal("show");
+	$('#processingYourRequest').modal('show');
+	
+	
+    var key = encrypt(jsrd, email.value.trim() + srd + rd);
+	var data = 'key=' + hash_key + '&hash=' + key + '&email=' + email.value.trim() + '&type=1';
+	
+    $.ajax({
+		type: 'POST',
+        url: 'email_contactUs',
+        data: data,
+        success: function(response) {
+            //$('#req_modal').modal("hide");
+			$('#processingYourRequest').modal('hide');
+			email.value = "";
+			
+            switch (parseInt(response)) {
+                case 200:
+                    //alert("Your email is sent, you will be contacted at the earliest possible!!");
+					openModalAlert("images/checked-model1.png", "Congratulations!!", "Your email is sent, you will be contacted at the earliest possible!!", 0);
+                    break;
+                case 404:
+                    //alert("Oop's something went wrong and we could not send your email. Please try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "Oop's something went wrong and we could not send your email. Please try again!!", 0);
+                    break;
+                default:
+                    //alert("OOPs something went wrong!! Please try again!!");
+					openModalAlert("images/cross-model1.png", "Error!!", "OOPs something went wrong!! Please try again!!", 0);
+                    break;
+            }
+            return false;
+        }
+    });
+}
+
+function socialWindow(url) {
+    var left = (screen.width - 570) / 2;
+    var top = (screen.height - 570) / 2;
+    var params = "menubar=no,toolbar=no,status=no,width=570,height=570,top=" + top + ",left=" + left;
+    window.open(url, "NewWindow", params);
+}
+
+function facebookShare(pageUrl) {
+	var tweet = "";
+	var url = "https://www.facebook.com/sharer.php?u=" + encodeURIComponent(pageUrl);
+    socialWindow(url);
+}
+
+function twitterShare(pageUrl) {
+	var tweet = "";
+	var url = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(pageUrl) + "&text=" + tweet;
+    socialWindow(url);
+}
+
+function linkedInShare(pageUrl) {
+	var tweet = "";
+	var url = "https://www.linkedin.com/shareArticle?mini=true&url=" + encodeURIComponent(pageUrl);
+    socialWindow(url);
+}
+
+function whatsAppShare(pageUrl) {
+	if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+		var sText = "";
+		var sUrl = pageUrl;
+		//var sMsg = encodeURIComponent(sText) + " - " + encodeURIComponent(sUrl);
+		var sMsg = encodeURIComponent(sUrl);
+		var whatsapp_url = "whatsapp://send?text=" + sMsg;
+		window.location.href = whatsapp_url;
+	} else {
+		alert("Whatsapp client not available.");
+	}
+}
+
+function copyToClipboard(pageUrl) {
+    if (window.clipboardData && window.clipboardData.setData) {
+        // Internet Explorer-specific code path to prevent textarea being shown while dialog is visible.
+        return clipboardData.setData("Text", pageUrl);
+    } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+        var textarea = document.createElement("textarea");
+        textarea.textContent = pageUrl;
+        textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in Microsoft Edge.
+        document.body.appendChild(textarea);
+        textarea.select();
+        
+		try {
+			$('.copiedTextForSocial').show();
+			setTimeout(function() {
+				$('.copiedTextForSocial').hide();
+			}, 1000);
+            return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+        } catch (ex) {
+            console.warn("Copy to clipboard failed.", ex);
+            return false;
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+}
+
+function copyToClipboardOnModalOpen(pageUrl) {
+    if (window.clipboardData && window.clipboardData.setData) {
+        // Internet Explorer-specific code path to prevent textarea being shown while dialog is visible.
+        return clipboardData.setData("Text", pageUrl);
+    } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+        var textarea = document.createElement("textarea");
+        textarea.textContent = pageUrl;
+        textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in Microsoft Edge.
+        $("#socialSharePopUp").append(textarea);
+        textarea.select();
+        
+		try {
+			$('.copiedTextForSocial').show();
+			setTimeout(function() {
+				$('.copiedTextForSocial').hide();
+			}, 1000);
+            return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+        } catch (ex) {
+            console.warn("Copy to clipboard failed.", ex);
+            return false;
+        } finally {
+            textarea.remove();
+        }
+    }
+}
+
+function showSocialMediaSharePopup(pageUrl) {
+	$("#socialMediaShareLink").val(pageUrl);
+	$('#socialSharePopUp').modal('show');
+	$('.copiedTextForSocial').hide();
+}
+
+function closeSocialSharePopup() {
+	$('#socialSharePopUp').modal('hide');
+}
+
+function shareToSocialMedia(selectedOption) {
+	var pageUrl = $("#socialMediaShareLink").val();
+	
+	if(selectedOption == 0) {
+		facebookShare(pageUrl);
+	}
+	
+	if(selectedOption == 1) {
+		twitterShare(pageUrl);
+	}
+	
+	if(selectedOption == 2) {
+		linkedInShare(pageUrl);
+	}
+	
+	if(selectedOption == 3) {
+		whatsAppShare(pageUrl);
+	}
+	
+	if(selectedOption == 4) {
+		copyToClipboardOnModalOpen(pageUrl);
+	}
+}
+
+function openServiceNotAvailable(serviceName) {
+	$('#serviceNotAvailable').modal('show');
+	$('#serviceNameNotAvailable').html(serviceName);
+}
+
+function closeServiceNotAvailable() {
+	$("#serviceNotAvailable").modal('close');
+}
+
+
+
+
+$("#view-all").click(function () {
+$(".view_feature").slideDown("slow");
+$('#view-all').remove();
+});
+$("#read_spe").click(function () {
+$(".Specifications").slideDown("slow");
+$('#read_spe').remove();
+});
+
+$(document).ready(function() {
+    $("[href]").each(function() {
+        if (this.href == window.location.href) {
+            $(this).addClass("active");
+        }
+    });
+});
+
+// Session timeout handling
+function handleSessionTimeout() {
+    // Redirect to session timeout route which will handle the two-factor reset
+    window.location.href = '/session-timeout';
+}
+
+// Check for session timeout on page load
+$(document).ready(function() {
+    // Check if there's a session timeout error in the URL or session
+    if (window.location.search.includes('session_timeout=1') || 
+        (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('session_timeout'))) {
+        handleSessionTimeout();
+    }
+});
+
+// Monitor for 401 Unauthorized responses (session expired)
+$(document).ajaxError(function(event, xhr, settings) {
+    if (xhr.status === 401) {
+        // Session expired, redirect to session timeout handler
+        handleSessionTimeout();
+    }
+});

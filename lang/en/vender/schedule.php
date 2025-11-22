@@ -1,0 +1,40 @@
+<?php
+
+return [
+    // From schedules.blade.php (new keys)
+    'bus_schedules' => 'Bus Schedules',
+    'add_new_schedule' => 'Add New Schedule',
+    'add_new_schedule_aria' => 'Add new schedule',
+    'time_24hrs' => 'Time (24HRS)',
+    'schedule_date' => 'Schedule Date',
+    'edit_schedule' => 'Edit schedule',
+    'delete_schedule' => 'Delete schedule',
+    'view_schedule' => 'View schedule',
+    'schedule_details' => 'Schedule Details',
+    'close_modal' => 'Close modal',
+    'na' => 'N/A',
+    'confirm_delete_schedule' => 'Are you sure you want to delete this schedule?',
+    'bus' => 'Bus',
+    'from' => 'From',
+    'to' => 'To',
+    'action' => 'Action',
+    'via' => 'Via',
+    // From edit_schedule.blade.php (new keys)
+    'edit_bus_schedule' => 'Edit Bus Schedule',
+    'back_to_schedules' => 'Back to Schedules',
+    'departure_time' => 'Departure Time',
+    'arrival_time' => 'Arrival Time',
+    'update_schedule' => 'Update Schedule',
+    // From add_schedule.blade.php (new keys)
+    'lock' => 'Lock',
+    'unlock' => 'Unlock',
+    'remove' => 'Remove',
+    'add_another_schedule' => 'Add Another Schedule',
+    'select_from' => 'Select From',
+    'select_to' => 'Select To',
+    'no_unbooked_schedules' => 'No unbooked schedules found for this bus.',
+    'failed_to_fetch_schedules' => 'Failed to fetch schedules:',
+    'select_route' => 'Select Route',
+    'select_bus' => 'Select Bus',
+    'save_schedule' => 'Save Schedule',
+];

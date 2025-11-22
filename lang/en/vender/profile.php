@@ -1,0 +1,33 @@
+<?php
+
+return [
+    // From profile_settings.blade.php (new keys)
+    'profile_settings' => 'Profile Settings',
+    'last_updated' => 'Last updated:',
+    'personal_information' => 'Personal Information',
+    'full_name' => 'Full Name',
+    'email_address' => 'Email Address',
+    'phone_number' => 'Phone Number',
+    'company_details' => 'Company Details',
+    'company_name' => 'Company Name',
+    'registration_number' => 'Registration Number',
+    'tin_number' => 'TIN Number',
+    'vrn_number' => 'VRN Number',
+    'business_address' => 'Business Address',
+    'office_number' => 'Office Number',
+    'street' => 'Street',
+    'po_box' => 'P.O. Box',
+    'town' => 'Town',
+    'district_city' => 'District/City',
+    'region_province' => 'Region/Province',
+    'contact_information' => 'Contact Information',
+    'whatsapp_number' => 'WhatsApp Number',
+    'bank_account_details' => 'Bank Account Details',
+    'bank_name' => 'Bank Name',
+    'account_number' => 'Account Number',
+    'security_settings' => 'Security Settings',
+    'change_password' => 'Change Password',
+    'leave_blank_password' => 'Leave blank to keep current password',
+    'save_changes' => 'Save Changes',
+    'cancel' => 'Cancel',
+];

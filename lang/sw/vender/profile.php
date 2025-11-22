@@ -1,0 +1,33 @@
+<?php
+
+return [
+    // From profile_settings.blade.php (new keys)
+    'profile_settings' => 'Mipangilio ya Wasifu',
+    'last_updated' => 'Sasisho la mwisho:',
+    'personal_information' => 'Taarifa Binafsi',
+    'full_name' => 'Jina Kamili',
+    'email_address' => 'Barua Pepe',
+    'phone_number' => 'Nambari ya Simu',
+    'company_details' => 'Maelezo ya Kampuni',
+    'company_name' => 'Jina la Kampuni',
+    'registration_number' => 'Nambari ya Usajili',
+    'tin_number' => 'Nambari ya TIN',
+    'vrn_number' => 'Nambari ya VRN',
+    'business_address' => 'Anuani ya Biashara',
+    'office_number' => 'Nambari ya Ofisi',
+    'street' => 'Mtaa',
+    'po_box' => 'Sanduku la Posta',
+    'town' => 'Mji',
+    'district_city' => 'Wilaya/Jiji',
+    'region_province' => 'Mkoa/Jimbo',
+    'contact_information' => 'Taarifa za Mawasiliano',
+    'whatsapp_number' => 'Nambari ya WhatsApp',
+    'bank_account_details' => 'Maelezo ya Akaunti ya Benki',
+    'bank_name' => 'Jina la Benki',
+    'account_number' => 'Nambari ya Akaunti',
+    'security_settings' => 'Mipangilio ya Usalama',
+    'change_password' => 'Badilisha Nenosiri',
+    'leave_blank_password' => 'Acha wazi ili kuweka nenosiri la sasa',
+    'save_changes' => 'Hifadhi Mabadiliko',
+    'cancel' => 'katisha',
+];

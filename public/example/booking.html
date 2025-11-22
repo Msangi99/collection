@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Ticket Booking - Tanzania</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .booking-card {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #343a40;
+        }
+        .btn-book {
+            background-color: #28a745;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .btn-book:hover {
+            background-color: #218838;
+        }
+        .header {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="booking-card">
+            <div class="header">
+                <h2><i class="fas fa-bus"></i> Book Your Bus Ticket</h2>
+                <p>Travel Across Tanzania with Ease</p>
+            </div>
+            <form class="mt-4">
+                <!-- Bus Operator Selection -->
+                <div class="mb-3">
+                    <label for="busOperator" class="form-label"><i class="fas fa-bus-alt"></i> Select Bus Operator</label>
+                    <select class="form-select" id="busOperator" required>
+                        <option value="" disabled selected>Choose a bus operator</option>
+                        <option value="dar-express">Dar Express</option>
+                        <option value="shabiby">Shabiby Line</option>
+                        <option value="kilimanjaro">Kilimanjaro Express</option>
+                        <option value="modern-coast">Modern Coast</option>
+                        <option value="abc-travel">ABC Travel</option>
+                    </select>
+                </div>
+
+                <!-- Route Start Selection -->
+                <div class="mb-3">
+                    <label for="routeStart" class="form-label"><i class="fas fa-map-marker-alt"></i> Starting City</label>
+                    <select class="form-select" id="routeStart" required onchange="updateDropOff()">
+                        <option value="" disabled selected>Select starting city</option>
+                        <option value="dar-es-salaam">Dar es Salaam (Dar es Salaam Region)</option>
+                        <option value="arusha">Arusha (Arusha Region)</option>
+                        <option value="mwanza">Mwanza (Mwanza Region)</option>
+                        <option value="dodoma">Dodoma (Dodoma Region)</option>
+                        <option value="mbeya">Mbeya (Mbeya Region)</option>
+                        <option value="zanzibar">Zanzibar (Zanzibar Urban/West)</option>
+                    </select>
+                </div>
+
+                <!-- Route End Selection -->
+                <div class="mb-3">
+                    <label for="routeEnd" class="form-label"><i class="fas fa-flag-checkered"></i> Destination City</label>
+                    <select class="form-select" id="routeEnd" required onchange="updateDropOff()">
+                        <option value="" disabled selected>Select destination city</option>
+                        <option value="dar-es-salaam">Dar es Salaam (Dar es Salaam Region)</option>
+                        <option value="arusha">Arusha (Arusha Region)</option>
+                        <option value="mwanza">Mwanza (Mwanza Region)</option>
+                        <option value="dodoma">Dodoma (Dodoma Region)</option>
+                        <option value="mbeya">Mbeya (Mbeya Region)</option>
+                        <option value="zanzibar">Zanzibar (Zanzibar Urban/West)</option>
+                    </select>
+                </div>
+
+                <!-- Pickup Point Selection -->
+                <div class="mb-3">
+                    <label for="pickupPoint" class="form-label"><i class="fas fa-map-pin"></i> Pickup Point</label>
+                    <select class="form-select" id="pickupPoint" required>
+                        <option value="" disabled selected>Select pickup point</option>
+                    </select>
+                </div>
+
+                <!-- Drop-off Point Selection -->
+                <div class="mb-3">
+                    <label for="dropoffPoint" class="form-label"><i class="fas fa-map-pin"></i> Drop-off Point</label>
+                    <select class="form-select" id="dropoffPoint" required>
+                        <option value="" disabled selected>Select drop-off point</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-book text-white"><i class="fas fa-ticket-alt"></i> Book Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample route data with intermediate points
+        const routes = {
+            'dar-es-salaam-arusha': [
+                'Morogoro (Morogoro Region)',
+                'Chalinze (Pwani Region)',
+                'Moshi (Kilimanjaro Region)'
+            ],
+            'dar-es-salaam-mwanza': [
+                'Singida (Singida Region)',
+                'Shinyanga (Shinyanga Region)',
+                'Nzega (Tabora Region)'
+            ],
+            'dar-es-salaam-dodoma': [
+                'Morogoro (Morogoro Region)',
+                'Gairo (Morogoro Region)',
+                'Kilosa (Morogoro Region)'
+            ],
+            'arusha-mwanza': [
+                'Serengeti (Mara Region)',
+                'Musoma (Mara Region)',
+                'Singida (Singida Region)'
+            ],
+            // Add more routes as needed
+        };
+
+        function updateDropOff() {
+            const start = document.getElementById('routeStart').value;
+            const end = document.getElementById('routeEnd').value;
+            const pickupSelect = document.getElementById('pickupPoint');
+            const dropoffSelect = document.getElementById('dropoffPoint');
+
+            // Clear previous options
+            pickupSelect.innerHTML = '<option value="" disabled selected>Select pickup point</option>';
+            dropoffSelect.innerHTML = '<option value="" disabled selected>Select drop-off point</option>';
+
+            if (start && end && start !== end) {
+                const routeKey = `${start}-${end}`;
+                const reverseRouteKey = `${end}-${start}`;
+                let points = routes[routeKey] || routes[reverseRouteKey] || [];
+
+                // Add start and end cities to the points list
+                const allPoints = [start, ...points, end];
+
+                // Populate pickup and drop-off points
+                allPoints.forEach(point => {
+                    const option = document.createElement('option');
+                    option.value = point;
+                    option.text = point;
+                    pickupSelect.appendChild(option.cloneNode(true));
+                    dropoffSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Prevent selecting same start and end city
+        document.getElementById('routeEnd').addEventListener('change', function() {
+            const start = document.getElementById('routeStart').value;
+            if (this.value === start) {
+                alert('Starting city and destination city cannot be the same.');
+                this.value = '';
+            }
+        });
+
+        document.getElementById('routeStart').addEventListener('change', function() {
+            const end = document.getElementById('routeEnd').value;
+            if (this.value === end) {
+                alert('Starting city and destination city cannot be the same.');
+                this.value = '';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'booking' => 'Uhifadhi',
+    'plan_your_journey' => 'Panga Safari Yako',
+    'choose_travel_details' => 'Chagua maelezo yako ya usafiri kwa urahisi',
+    'from' => 'Kutoka',
+    'select_departure_city' => 'Chagua mji wa kuondoka',
+    'to' => 'Kwenda',
+    'select_destination_city' => 'Chagua mji wa marudio',
+    'travel_date' => 'Tarehe ya Safari',
+    'select_date' => 'Chagua tarehe',
+    'book_now' => 'Hifadhi Sasa',
+    'unauthorized_access' => 'Ufikiaji Usioidhinishwa',
+    'contact_support' => 'Tafadhali wasiliana na usaidizi ili kuendelea na uhifadhi.',
+    'select_city' => 'Chagua mji',
+    // New translations for bus listing page
+    'no_buses_available' => 'Hakuna mabasi yanayopatikana kwa njia hii',
+    'try_different_criteria' => 'Tafadhali jaribu vigezo tofauti vya utafutaji au tarehe nyingine',
+    'back_to_search' => 'Rudi Kutafuta',
+    'luxury' => 'LUXURY',
+    'semiluxury' => 'SEMILUXURY',
+    'ordinary' => 'KAWAIDA',
+    'na' => 'Haipatikani',
+    'from_label' => 'Kutoka',
+    'amenities' => 'Huduma',
+    'booking_policy' => 'Sera ya Kuhifadhi',
+    'book' => 'Hifadhi',
+    'upper_semiluxury' => 'UPPER-SEMILUXURY',
+    'lower_semiluxury' => 'LOWER-SEMILUXURY',
+];

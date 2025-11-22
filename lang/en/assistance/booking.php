@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'booking' => 'Booking',
+    'plan_your_journey' => 'Plan Your Journey',
+    'choose_travel_details' => 'Choose your travel details with ease',
+    'from' => 'From',
+    'select_departure_city' => 'Select departure city',
+    'to' => 'To',
+    'select_destination_city' => 'Select destination city',
+    'travel_date' => 'Travel Date',
+    'select_date' => 'Select date',
+    'book_now' => 'Book Now',
+    'unauthorized_access' => 'Unauthorized Access',
+    'contact_support' => 'Please contact support to proceed with booking.',
+    'select_city' => 'Select a city',
+    // New translations for bus listing page
+    'no_buses_available' => 'No buses available for this route',
+    'try_different_criteria' => 'Please try different search criteria or another date',
+    'back_to_search' => 'Back to Search',
+    'luxury' => 'LUXURY',
+    'semiluxury' => 'SEMILUXURY',
+    'ordinary' => 'ORDINARY',
+    'na' => 'N/A',
+    'from_label' => 'From',
+    'amenities' => 'Amenities',
+    'booking_policy' => 'Booking Policy',
+    'book' => 'Book',
+    'upper_semiluxury' => 'UPPER-SEMILUXURY',
+    'lower_semiluxury' => 'LOWER-SEMILUXURY',
+];

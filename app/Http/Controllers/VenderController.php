@@ -263,13 +263,13 @@ class VenderController extends Controller
             'schedules' => function ($query) use ($departureCityName, $arrivalCityName, $departure_date) {
                 $query->where('from', $departureCityName)
                     ->where('to', $arrivalCityName)
-                    ->whereDate('schedule_date', $departure_date)
-                    ->where(function ($timeQuery) use ($departure_date) {
-                        // If it's today, only show schedules that haven't started yet
-                        if ($departure_date === Carbon::now()->toDateString()) {
-                            $timeQuery->where('start', '>', Carbon::now()->toTimeString());
-                        }
-                    });
+                    ->whereDate('schedule_date', $departure_date);
+                    // ->where(function ($timeQuery) use ($departure_date) {
+                    //     // If it's today, only show schedules that haven't started yet
+                    //     if ($departure_date === Carbon::now()->toDateString()) {
+                    //         $timeQuery->where('start', '>', Carbon::now()->toTimeString());
+                    //     }
+                    // });
             },
             'booking' => function ($query) use ($departure_date) {
                 $query->where('travel_date', $departure_date)
@@ -282,13 +282,13 @@ class VenderController extends Controller
             ->whereHas('schedules', function ($query) use ($departureCityName, $arrivalCityName, $departure_date) {
                 $query->where('from', $departureCityName)
                     ->where('to', $arrivalCityName)
-                    ->whereDate('schedule_date', $departure_date)
-                    ->where(function ($timeQuery) use ($departure_date) {
-                        // If it's today, only show schedules that haven't started yet
-                        if ($departure_date === Carbon::now()->toDateString()) {
-                            $timeQuery->where('start', '>', Carbon::now()->toTimeString());
-                        }
-                    });
+                    ->whereDate('schedule_date', $departure_date);
+                    // ->where(function ($timeQuery) use ($departure_date) {
+                    //     // If it's today, only show schedules that haven't started yet
+                    //     if ($departure_date === Carbon::now()->toDateString()) {
+                    //         $timeQuery->where('start', '>', Carbon::now()->toTimeString());
+                    //     }
+                    // });
             });
 
         // Add bus class filter if specified and not "any"

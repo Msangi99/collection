@@ -1,3 +1,22 @@
+<style>
+    @media (max-width: 767px) {
+        #mobile-menu {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-12px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        #mobile-menu.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+    }
+</style>
+
 <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
     <div class="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex justify-between items-center">
         <!-- Logo -->
@@ -62,8 +81,9 @@
             @endauth
             
             <!-- Mobile Menu Button (Visible for all users) -->
-            <button id="mobile-menu-btn" class="md:hidden text-gray-700 focus:outline-none p-2 hover:bg-gray-100 rounded-md transition-colors duration-200"
-                aria-label="Toggle mobile menu">
+            <button id="mobile-menu-btn"
+                class="md:hidden text-gray-700 focus:outline-none p-2 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                aria-label="Toggle mobile menu" aria-expanded="false">
                 <i class="fas fa-bars text-xl"></i>
             </button>
         </div>
@@ -71,7 +91,7 @@
 
     <!-- Mobile Menu -->
     <div id="mobile-menu"
-        class="md:hidden hidden fixed top-full left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg z-40 border-t border-gray-200">
+        class="mobile-menu md:hidden absolute top-full left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 rounded-b-2xl shadow-lg">
         <div class="flex flex-col space-y-1 p-4">
             <a wire:navigate href="{{ route('home') }}"
                 class="px-4 py-3 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors duration-200 font-medium">Home</a>
@@ -134,36 +154,32 @@
     document.addEventListener('DOMContentLoaded', function() {
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
-        
-        if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', () => {
-                const isHidden = mobileMenu.classList.contains('hidden');
-                
-                if (isHidden) {
-                    mobileMenu.classList.remove('hidden');
-                    mobileMenuBtn.innerHTML = '<i class="fas fa-times text-xl"></i>';
-                } else {
-                    mobileMenu.classList.add('hidden');
-                    mobileMenuBtn.innerHTML = '<i class="fas fa-bars text-xl"></i>';
-                }
-            });
-            
-            // Close mobile menu when clicking on a link
-            const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-            mobileMenuLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenu.classList.add('hidden');
-                    mobileMenuBtn.innerHTML = '<i class="fas fa-bars text-xl"></i>';
-                });
-            });
-            
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-                    mobileMenu.classList.add('hidden');
-                    mobileMenuBtn.innerHTML = '<i class="fas fa-bars text-xl"></i>';
-                }
-            });
+
+        if (!mobileMenuBtn || !mobileMenu) {
+            return;
         }
+
+        const setMenuState = (isOpen) => {
+            mobileMenu.classList.toggle('open', isOpen);
+            mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            mobileMenuBtn.innerHTML = isOpen
+                ? '<i class="fas fa-times text-xl"></i>'
+                : '<i class="fas fa-bars text-xl"></i>';
+        };
+
+        mobileMenuBtn.addEventListener('click', () => {
+            const isOpen = mobileMenu.classList.contains('open');
+            setMenuState(!isOpen);
+        });
+
+        mobileMenu.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', () => setMenuState(false));
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!mobileMenuBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+                setMenuState(false);
+            }
+        });
     });
 </script>

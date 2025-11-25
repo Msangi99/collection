@@ -532,24 +532,6 @@
     </button>
 
     <script>
-        // Mobile menu functionality
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('active');
-            mobileMenuBtn.innerHTML = mobileMenu.classList.contains('active') ? 
-                '<i class="fas fa-times text-xl"></i>' : '<i class="fas fa-bars text-xl"></i>';
-        });
-
-        // Close mobile menu when clicking on a link
-        document.querySelectorAll('#mobile-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenu.classList.remove('active');
-                mobileMenuBtn.innerHTML = '<i class="fas fa-bars text-xl"></i>';
-            });
-        });
-
         // FAQ accordion
         document.querySelectorAll('.glass-card .flex.items-center').forEach(item => {
             item.addEventListener('click', function() {

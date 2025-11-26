@@ -554,6 +554,20 @@ class SystemController extends Controller
     public function setting()
     {
         $settings = Setting::first();
+
+        if (!$settings) {
+            $settings = Setting::create([
+                'international' => 0,
+                'local' => 0,
+                'service' => 0,
+                'service_percentage' => 0,
+                'enable_customer_sms_notifications' => true,
+                'enable_customer_email_notifications' => true,
+                'enable_conductor_sms_notifications' => true,
+                'enable_conductor_email_notifications' => true,
+            ]);
+        }
+
         return view('system.setting', compact('settings'));
     }
     
@@ -562,7 +576,12 @@ class SystemController extends Controller
         $settings = Setting::first();
 
         if (!$settings) {
-            return back()->with('error', 'Settings record not found.');
+            $settings = Setting::create([
+                'international' => 0,
+                'local' => 0,
+                'service' => 0,
+                'service_percentage' => 0,
+            ]);
         }
 
         $settings->update([

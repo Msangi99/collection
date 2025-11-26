@@ -90,7 +90,7 @@
                     <div>
                         <label for="service_percentage" class="block text-sm font-medium text-gray-700 mb-1">Service Percentage</label>
                         <div class="relative rounded-md shadow-sm">
-                            <input type="number" id="service_percentage" name="service_percentage" value="{{ old('service_percentage', $settings->service_percentage ?? '') }}" step="0.01" required
+                            <input style="padding-left: 30px;" type="number" id="service_percentage" name="service_percentage" value="{{ old('service_percentage', $settings->service_percentage ?? '') }}" step="0.01" required
                                    class="focus:ring-blue-500 focus:border-blue-500 block w-full pr-12 py-2 border border-gray-300 rounded-md" placeholder="0.00">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <span class="text-gray-500 sm:text-sm">%</span>
@@ -99,6 +99,75 @@
                         @error('service_percentage')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Preferences -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden space-y-6">
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        Notification Preferences
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">Choose who should get notified after payments clear.</p>
+                </div>
+
+                <div class="px-6 pb-6 space-y-4">
+                    <h3 class="text-md font-semibold text-gray-700">Customer notifications</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-start justify-between border rounded-lg p-4">
+                            <div>
+                                <p class="text-base font-medium text-gray-800">Customer SMS</p>
+                                <p class="text-sm text-gray-500">Send trip details to the passenger phone number.</p>
+                            </div>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="enable_customer_sms_notifications" value="1"
+                                       class="sr-only peer" {{ old('enable_customer_sms_notifications', $settings->enable_customer_sms_notifications ?? true) ? 'checked' : '' }}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-start justify-between border rounded-lg p-4">
+                            <div>
+                                <p class="text-base font-medium text-gray-800">Customer email</p>
+                                <p class="text-sm text-gray-500">Send confirmation emails to the passenger email address.</p>
+                            </div>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="enable_customer_email_notifications" value="1"
+                                       class="sr-only peer" {{ old('enable_customer_email_notifications', $settings->enable_customer_email_notifications ?? true) ? 'checked' : '' }}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 pb-6 space-y-4 border-t border-gray-100">
+                    <h3 class="text-md font-semibold text-gray-700">Conductor notifications</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-start justify-between border rounded-lg p-4">
+                            <div>
+                                <p class="text-base font-medium text-gray-800">Conductor SMS</p>
+                                <p class="text-sm text-gray-500">Send seat assignment to the conductor phone number.</p>
+                            </div>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="enable_conductor_sms_notifications" value="1"
+                                       class="sr-only peer" {{ old('enable_conductor_sms_notifications', $settings->enable_conductor_sms_notifications ?? true) ? 'checked' : '' }}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-start justify-between border rounded-lg p-4">
+                            <div>
+                                <p class="text-base font-medium text-gray-800">Conductor email</p>
+                                <p class="text-sm text-gray-500">Email itinerary to the conductor/company email if available.</p>
+                            </div>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="enable_conductor_email_notifications" value="1"
+                                       class="sr-only peer" {{ old('enable_conductor_email_notifications', $settings->enable_conductor_email_notifications ?? true) ? 'checked' : '' }}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

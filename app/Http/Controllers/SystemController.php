@@ -559,14 +559,22 @@ class SystemController extends Controller
     
     public function setting_update(Request $request)
     {
-        Setting::first()->update(
-                [
-                    'local' => $request->local,
-                    'international' => $request->international,
-                    'service' =>  $request->service,
-                    'service_percentage' => $request->service_percentage
-                ]
-            );
+        $settings = Setting::first();
+
+        if (!$settings) {
+            return back()->with('error', 'Settings record not found.');
+        }
+
+        $settings->update([
+            'local' => $request->local,
+            'international' => $request->international,
+            'service' => $request->service,
+            'service_percentage' => $request->service_percentage,
+            'enable_customer_sms_notifications' => $request->boolean('enable_customer_sms_notifications'),
+            'enable_customer_email_notifications' => $request->boolean('enable_customer_email_notifications'),
+            'enable_conductor_sms_notifications' => $request->boolean('enable_conductor_sms_notifications'),
+            'enable_conductor_email_notifications' => $request->boolean('enable_conductor_email_notifications'),
+        ]);
         
         return back()->with('success', 'settings updated');
     }

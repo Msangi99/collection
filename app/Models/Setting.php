@@ -14,6 +14,10 @@ class Setting extends Model
             'international',
             'local',
             'service',
-            'service_percentage'
+            'service_percentage',
+            'enable_customer_sms_notifications',
+            'enable_customer_email_notifications',
+            'enable_conductor_sms_notifications',
+            'enable_conductor_email_notifications',
         ];
 }

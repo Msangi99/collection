@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\SendEmail;
 use App\Models\Booking;
 use App\Models\Roundtrip;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -12,7 +13,7 @@ class RedirectController extends Controller
 {
     public function showBookingStatus($bookingId)
     {
-        $booking = Booking::with('bus.route', 'campany.busOwnerAccount')
+        $booking = Booking::with('bus.route', 'campany.busOwnerAccount', 'campany.user')
             ->where('id', $bookingId)
             ->orwhere('transaction_ref_id', $bookingId)
             ->first();
@@ -25,24 +26,42 @@ class RedirectController extends Controller
     }
     public function _redirect($transactionRefId)
     {
-        $data = Booking::with('bus.route', 'campany.busOwnerAccount')
+        $data = Booking::with('bus.route', 'campany.busOwnerAccount', 'campany.user')
             ->where('transaction_ref_id', $transactionRefId)
             ->orwhere('id', $transactionRefId)
             ->first();
 
         if ($data->payment_status == "Paid") {
-            
-            $sms = new SmsController();
-            $data1 =  "Dear {$data->customer_name}, Karibu {$data->campany->name}. Utasafiri na basi namba {$data->bus->bus_number} Tarehe {$data->travel_date} kutoka {$data->pickup_point} kwenda {$data->dropping_point} muda wa kuondoka ni {$data->bus->route->route_start} tafadhali report kituoni mapema kwa safari.Namba ya kiti chako ni {$data->seat} na namba yako ya safari ni {$data->booking_code}. Kwa mawasiliano piga {$data->bus->conductor}. HIGHLINK ISGC inakutakia safari njema";
-            $sms->sms_send($data->customer_phone, $data1);
-            $data2 = "Dear conductor, Kiti {$data->seat} katika basi namba {$data->bus->bus_number} kimeuzwa kwa {$data->customer_name} kwa safari ya kutoka {$data->pickup_point} kwenda {$data->dropping_point} tarehe {$data->travel_date} namba ya safari yake ni {$data->booking_code} wasiliana naye kwa namba {$data->customer_phone} HIGHLINK ISGC inawatakia safari njema";
-            $sms->sms_send($data->bus->conductor, $data2);
+            $settings = Setting::first();
+            $sendCustomerSms = $settings ? (bool) $settings->enable_customer_sms_notifications : true;
+            $sendCustomerEmail = $settings ? (bool) $settings->enable_customer_email_notifications : true;
+            $sendConductorSms = $settings ? (bool) $settings->enable_conductor_sms_notifications : true;
+            $sendConductorEmail = $settings ? (bool) $settings->enable_conductor_email_notifications : true;
 
-            if (!is_null($data->customer_email)) {
-                Mail::to($data->customer_email)->send(new SendEmail($data1));
-                Mail::to($data->customer_email)->send(new SendEmail($data2));
+            $customerMessage = "Dear {$data->customer_name}, Karibu {$data->campany->name}. Utasafiri na basi namba {$data->bus->bus_number} Tarehe {$data->travel_date} kutoka {$data->pickup_point} kwenda {$data->dropping_point} muda wa kuondoka ni {$data->bus->route->route_start} tafadhali report kituoni mapema kwa safari.Namba ya kiti chako ni {$data->seat} na namba yako ya safari ni {$data->booking_code}. Kwa mawasiliano piga {$data->bus->conductor}. HIGHLINK ISGC inakutakia safari njema";
+            $conductorMessage = "Dear conductor, Kiti {$data->seat} katika basi namba {$data->bus->bus_number} kimeuzwa kwa {$data->customer_name} kwa safari ya kutoka {$data->pickup_point} kwenda {$data->dropping_point} tarehe {$data->travel_date} namba ya safari yake ni {$data->booking_code} wasiliana naye kwa namba {$data->customer_phone} HIGHLINK ISGC inawatakia safari njema";
+
+            if ($sendCustomerSms && !empty($data->customer_phone)) {
+                $sms = new SmsController();
+                $sms->sms_send($data->customer_phone, $customerMessage);
             }
-                
+
+            if ($sendConductorSms && !empty($data->bus->conductor)) {
+                $sms = isset($sms) ? $sms : new SmsController();
+                $sms->sms_send($data->bus->conductor, $conductorMessage);
+            }
+
+            if ($sendCustomerEmail && !empty($data->customer_email)) {
+                Mail::to($data->customer_email)->send(new SendEmail($customerMessage));
+            }
+
+            $conductorEmail = $data->bus && $data->bus->campany && $data->bus->campany->user
+                ? $data->bus->campany->user->email
+                : ($data->campany && $data->campany->user ? $data->campany->user->email : null);
+
+            if ($sendConductorEmail && !empty($conductorEmail)) {
+                Mail::to($conductorEmail)->send(new SendEmail($conductorMessage));
+            }
 
             return view('payments.success', compact('data'));
         } else {

@@ -1,6 +1,34 @@
 @extends('system.app')
 
 @section('content')
+<style>
+    .toggle-visual {
+        width: 44px;
+        height: 24px;
+        border-radius: 9999px;
+        background-color: #e5e7eb;
+        position: relative;
+        transition: background-color 0.2s ease;
+    }
+    .toggle-visual::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 9999px;
+        background-color: #fff;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .toggle-visual.on {
+        background-color: #2563eb;
+    }
+    .toggle-visual.on::after {
+        transform: translateX(20px);
+    }
+</style>
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
         <!-- Page Header -->
@@ -125,8 +153,10 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_customer_sms_notifications" value="1"
-                                       class="sr-only peer" {{ ($settings->enable_customer_sms_notifications ?? true) ? 'checked' : '' }}>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                                       class="sr-only toggle-input"
+                                       data-toggle-target="toggle-customer-sms"
+                                       {{ ($settings->enable_customer_sms_notifications ?? true) ? 'checked' : '' }}>
+                                <div id="toggle-customer-sms" class="toggle-visual {{ ($settings->enable_customer_sms_notifications ?? true) ? 'on' : '' }}"></div>
                             </label>
                         </div>
                         <div class="flex items-start justify-between border rounded-lg p-4">
@@ -136,8 +166,10 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_customer_email_notifications" value="1"
-                                       class="sr-only peer" {{ ($settings->enable_customer_email_notifications ?? true) ? 'checked' : '' }}>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                                       class="sr-only toggle-input"
+                                       data-toggle-target="toggle-customer-email"
+                                       {{ ($settings->enable_customer_email_notifications ?? true) ? 'checked' : '' }}>
+                                <div id="toggle-customer-email" class="toggle-visual {{ ($settings->enable_customer_email_notifications ?? true) ? 'on' : '' }}"></div>
                             </label>
                         </div>
                     </div>
@@ -153,8 +185,10 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_conductor_sms_notifications" value="1"
-                                       class="sr-only peer" {{ ($settings->enable_conductor_sms_notifications ?? true) ? 'checked' : '' }}>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                                       class="sr-only toggle-input"
+                                       data-toggle-target="toggle-conductor-sms"
+                                       {{ ($settings->enable_conductor_sms_notifications ?? true) ? 'checked' : '' }}>
+                                <div id="toggle-conductor-sms" class="toggle-visual {{ ($settings->enable_conductor_sms_notifications ?? true) ? 'on' : '' }}"></div>
                             </label>
                         </div>
                         <div class="flex items-start justify-between border rounded-lg p-4">
@@ -164,8 +198,10 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_conductor_email_notifications" value="1"
-                                       class="sr-only peer" {{ ($settings->enable_conductor_email_notifications ?? true) ? 'checked' : '' }}>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                                       class="sr-only toggle-input"
+                                       data-toggle-target="toggle-conductor-email"
+                                       {{ ($settings->enable_conductor_email_notifications ?? true) ? 'checked' : '' }}>
+                                <div id="toggle-conductor-email" class="toggle-visual {{ ($settings->enable_conductor_email_notifications ?? true) ? 'on' : '' }}"></div>
                             </label>
                         </div>
                     </div>
@@ -181,4 +217,17 @@
         </form>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.toggle-input').forEach(function (input) {
+            var target = document.getElementById(input.dataset.toggleTarget);
+            if (!target) return;
+            var sync = function () {
+                target.classList.toggle('on', input.checked);
+            };
+            input.addEventListener('change', sync);
+            sync();
+        });
+    });
+</script>
 @endsection

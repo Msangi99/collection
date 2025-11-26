@@ -125,7 +125,7 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_customer_sms_notifications" value="1"
-                                       class="sr-only peer" {{ old('enable_customer_sms_notifications', $settings->enable_customer_sms_notifications ?? true) ? 'checked' : '' }}>
+                                       class="sr-only peer" {{ ($settings->enable_customer_sms_notifications ?? true) ? 'checked' : '' }}>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
                             </label>
                         </div>
@@ -136,7 +136,7 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_customer_email_notifications" value="1"
-                                       class="sr-only peer" {{ old('enable_customer_email_notifications', $settings->enable_customer_email_notifications ?? true) ? 'checked' : '' }}>
+                                       class="sr-only peer" {{ ($settings->enable_customer_email_notifications ?? true) ? 'checked' : '' }}>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
                             </label>
                         </div>
@@ -153,7 +153,7 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_conductor_sms_notifications" value="1"
-                                       class="sr-only peer" {{ old('enable_conductor_sms_notifications', $settings->enable_conductor_sms_notifications ?? true) ? 'checked' : '' }}>
+                                       class="sr-only peer" {{ ($settings->enable_conductor_sms_notifications ?? true) ? 'checked' : '' }}>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
                             </label>
                         </div>
@@ -164,7 +164,7 @@
                             </div>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_conductor_email_notifications" value="1"
-                                       class="sr-only peer" {{ old('enable_conductor_email_notifications', $settings->enable_conductor_email_notifications ?? true) ? 'checked' : '' }}>
+                                       class="sr-only peer" {{ ($settings->enable_conductor_email_notifications ?? true) ? 'checked' : '' }}>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
                             </label>
                         </div>

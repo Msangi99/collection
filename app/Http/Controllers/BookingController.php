@@ -48,12 +48,12 @@ class BookingController extends Controller
         if (filter_var($data, FILTER_VALIDATE_EMAIL)) {
             // Check if email exists in bookings
             $bookingExists = Booking::where('customer_email', $data)->exists();
-            
+
             if ($bookingExists) {
                 // Generate verification code (we'll store it in session since user might not have account)
                 $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                 $expiresAt = now()->addMinutes(15);
-                
+
                 // Store verification data in session
                 $request->session()->put('booking_verification_email', $data);
                 $request->session()->put('booking_verification_code', $verificationCode);
@@ -78,7 +78,7 @@ class BookingController extends Controller
             $bookings = Booking::with(['campany', 'route_name', 'user', 'bus.route', 'vender', 'campany.busOwnerAccount'])
                 ->where('customer_phone', $data)
                 ->get();
-            
+
             return view('booking_info', compact('bookings'));
         }
     }
@@ -104,7 +104,7 @@ class BookingController extends Controller
         $email = $request->session()->get('booking_verification_email');
         $storedCode = $request->session()->get('booking_verification_code');
         $expiresAt = $request->session()->get('booking_verification_expires_at');
-        
+
         if (!$email || !$storedCode || !$expiresAt) {
             return redirect()->route('info')->withErrors(['email' => 'Verification session expired. Please search again.']);
         }
@@ -137,7 +137,7 @@ class BookingController extends Controller
     {
         // Get email from session
         $email = $request->session()->get('booking_verification_email');
-        
+
         if (!$email) {
             return redirect()->route('info')->withErrors(['email' => 'Verification session expired. Please search again.']);
         }
@@ -145,7 +145,7 @@ class BookingController extends Controller
         // Generate new verification code
         $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $expiresAt = now()->addMinutes(15);
-        
+
         // Update session with new verification data
         $request->session()->put('booking_verification_code', $verificationCode);
         $request->session()->put('booking_verification_expires_at', $expiresAt);
@@ -440,7 +440,7 @@ class BookingController extends Controller
         $bus_info['countrycode'] = $request->countrycode;
 
         $user = $request->user_id ?? "";
-        $payment_method =  $request->payment_method;
+        $payment_method = $request->payment_method;
 
         session()->put('booking_form', $bus_info);
 
@@ -577,6 +577,22 @@ class BookingController extends Controller
                 // Log the error
                 Log::error('DPO Payment initiation failed: ' . $e->getMessage());
                 // Optionally, redirect the user back with an error message
+                return $e->getMessage();
+            }
+        } elseif ($method == 'clickpesa') {
+            try {
+                $clickpesa = new ClickPesaController();
+                Session::put('booking', $booking);
+                return $clickpesa->initiatePayment(
+                    round($amount),
+                    session()->get('booking_form')['customer_name'],
+                    session()->get('booking_form')['customer_name'],
+                    session()->get('booking_form')['customer_number'],
+                    session()->get('booking_form')['customer_email'],
+                    $xcode
+                );
+            } catch (\Exception $e) {
+                Log::error('ClickPesa Payment initiation failed: ' . $e->getMessage());
                 return $e->getMessage();
             }
         }
@@ -926,9 +942,9 @@ class BookingController extends Controller
                     // Calculate booked seats from pre-loaded bookings
                     $booked_seats = $bus->booking
                         ->flatMap(function ($booking) {
-                            // Handle comma-separated seats, trim whitespace, and filter valid seats
-                            return array_filter(array_map('trim', explode(',', $booking->seat)));
-                        })
+                        // Handle comma-separated seats, trim whitespace, and filter valid seats
+                        return array_filter(array_map('trim', explode(',', $booking->seat)));
+                    })
                         ->unique()
                         ->count();
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OnePageBookingController;
 use App\Http\Controllers\OtherController;
 use App\Http\Controllers\PDOController;
+use App\Http\Controllers\ClickPesaController;
 use App\Http\Controllers\QRcodeScannerController;
 use App\Http\Controllers\RebookController;
 use App\Http\Controllers\RedirectController;
@@ -94,6 +95,10 @@ Route::get('/campany/id', [RouteController::class, 'bus_name'])->name('busname')
 // Existing PDO callback routes
 Route::get('/dpo/callback', [PDOController::class, 'handleCallback'])->name('dpo.callback');
 Route::get('/dpo/cancel', [PDOController::class, 'handleCallback'])->name('dpo.cancel');
+
+// ClickPesa callback routes
+Route::get('/clickpesa/callback', [ClickPesaController::class, 'handleCallback'])->name('clickpesa.callback');
+Route::get('/clickpesa/cancel', [ClickPesaController::class, 'handleCallback'])->name('clickpesa.cancel');
 
 // New Tigosecure Callback Route (outside auth middleware if it's a public callback)
 //Route::get('/tigosecure/callback', [VenderWalletController::class, 'handleTigosecureCallback'])->name('tigo.callback');
@@ -198,7 +203,7 @@ Route::middleware('auth')->group(function () {
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Bus Company Routes (Accessible only to bus_company role)
-    
+
     Route::prefix('bus-company')->middleware(['role:bus_campany,local_bus_owner', '2fa'])->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::get('/buses', [AdminController::class, 'buses'])->name('buses');
@@ -235,7 +240,7 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/export', [AdminController::class, 'export'])->name('export');
         Route::get('bus/edit/{id}', [AdminController::class, 'edit_bus'])->name('edit.bus');
- 
+
         Route::get('/cities', [AdminController::class, 'cities'])->name('cities');
         Route::post('/cities', [AdminController::class, 'store_city'])->name('city.store');
 

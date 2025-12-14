@@ -101,9 +101,9 @@ class RoundTripController extends Controller
                 // Calculate booked seats from pre-loaded bookings
                 $booked_seats = $bus->booking
                     ->flatMap(function ($booking) {
-                        // Handle comma-separated seats, trim whitespace, and filter valid seats
-                        return array_filter(array_map('trim', explode(',', $booking->seat)));
-                    })
+                    // Handle comma-separated seats, trim whitespace, and filter valid seats
+                    return array_filter(array_map('trim', explode(',', $booking->seat)));
+                })
                     ->unique()
                     ->count();
 
@@ -199,9 +199,9 @@ class RoundTripController extends Controller
                     // Calculate booked seats from pre-loaded bookings
                     $booked_seats = $bus->booking
                         ->flatMap(function ($booking) {
-                            // Handle comma-separated seats, trim whitespace, and filter valid seats
-                            return array_filter(array_map('trim', explode(',', $booking->seat)));
-                        })
+                        // Handle comma-separated seats, trim whitespace, and filter valid seats
+                        return array_filter(array_map('trim', explode(',', $booking->seat)));
+                    })
                         ->unique()
                         ->count();
 
@@ -231,11 +231,13 @@ class RoundTripController extends Controller
             $currentTime = Carbon::now()->format('H:i:s');
             $currentDate = Carbon::now()->format('Y-m-d');
 
-            $busList = Bus::with(['schedules' => function ($query) use ($currentDate) {
-                $query->where('schedule_date', '>', $currentDate)
-                    ->orwhere('schedule_date', '=', $currentDate);
-                //->where('start', '>=', Carbon::now()->format('H:i:s')); // Optional: future schedules
-            }])
+            $busList = Bus::with([
+                'schedules' => function ($query) use ($currentDate) {
+                    $query->where('schedule_date', '>', $currentDate)
+                        ->orwhere('schedule_date', '=', $currentDate);
+                    //->where('start', '>=', Carbon::now()->format('H:i:s')); // Optional: future schedules
+                }
+            ])
                 ->where('campany_id', $request->bus_id)
                 ->whereHas('schedules', function ($query) use ($currentDate) {
                     $query->where('schedule_date', '>=', $currentDate);
@@ -299,9 +301,9 @@ class RoundTripController extends Controller
                 // Calculate booked seats from pre-loaded bookings
                 $booked_seats = $bus->booking
                     ->flatMap(function ($booking) {
-                        // Handle comma-separated seats, trim whitespace, and filter valid seats
-                        return array_filter(array_map('trim', explode(',', $booking->seat)));
-                    })
+                    // Handle comma-separated seats, trim whitespace, and filter valid seats
+                    return array_filter(array_map('trim', explode(',', $booking->seat)));
+                })
                     ->unique()
                     ->count();
 
@@ -618,8 +620,8 @@ class RoundTripController extends Controller
 
         $data1 = json_decode($firstbooking->data, true);
         $data2 = json_decode($secondbooking->data, true);
-        
-        
+
+
         $data = [
             'price' => $data1['price'] + $data2['price'],
             'ins' => ($data1['bima_amount'] ?? 0) + ($data2['bima_amount'] ?? 0),
@@ -640,7 +642,7 @@ class RoundTripController extends Controller
     }
 
     public function get_payment(Request $request)
-    { 
+    {
         Log::info('Round Trip Get Payment Request', [
             'request_data' => $request->all(),
             'payment_method' => $request->payment_method,
@@ -663,8 +665,8 @@ class RoundTripController extends Controller
         $user = $request->user_id ?? "";
 
         session()->put('booking_form', $bus_info);
-        $payment_method =  $request->payment_method;
-        
+        $payment_method = $request->payment_method;
+
         Log::info('Round Trip Payment Info Prepared', [
             'bus_info' => $bus_info,
             'user' => $user,
@@ -719,7 +721,7 @@ class RoundTripController extends Controller
             'secondbooking_session' => session()->get('secondbooking') ? 'exists' : 'missing',
             'booking_form_session' => session()->get('booking_form') ? 'exists' : 'missing'
         ]);
-        
+
         // This method needs to handle two bookings for a round trip
         $firstBookingData = json_decode(session()->get('firstbooking')->data, true);
         $secondBookingData = json_decode(session()->get('secondbooking')->data, true);
@@ -728,7 +730,7 @@ class RoundTripController extends Controller
 
         // Common payment details from the request (e.g., contact number, email)
         $commonPaymentInfo = session()->get('booking_form'); // This session data is set in get_payment
-        
+
         Log::info('Round Trip Payment Data', [
             'firstBookingData' => $firstBookingData,
             'secondBookingData' => $secondBookingData,
@@ -743,10 +745,10 @@ class RoundTripController extends Controller
         if (auth()->check()) {
             if (auth()->user()->role == 'vender') {
                 $pop1 = auth()->user()->id;
-            } else if(auth()->user()->role == 'customer') {
+            } else if (auth()->user()->role == 'customer') {
                 $cust1 = auth()->user()->id;
             }
-        } 
+        }
 
         $bookingData1 = [
             'booking_code' => $bookingCode1,
@@ -804,7 +806,7 @@ class RoundTripController extends Controller
         if (auth()->check()) {
             if (auth()->user()->role == 'vender') {
                 $pop2 = auth()->user()->id;
-            } else if(auth()->user()->role == 'customer') {
+            } else if (auth()->user()->role == 'customer') {
                 $cust2 = auth()->user()->id;
             }
         }
@@ -876,23 +878,23 @@ class RoundTripController extends Controller
                 'commonPaymentInfo' => $commonPaymentInfo,
                 'session_booking_form' => session()->get('booking_form')
             ]);
-            
+
             $tigo = new TigosecureController();
             try {
                 $paymentResponse = $tigo->payment($data);
-                
+
                 Log::info('Mixx Payment Response', [
                     'response' => $paymentResponse,
                     'redirectUrl' => $paymentResponse['redirectUrl'] ?? 'Not set'
                 ]);
-                
+
                 // Store transactionRefId in booking
                 //$booking->update(['transaction_ref_id' => $paymentResponse['transactionRefId']]);
                 // Clear session data
                 session()->forget('booking_form');
                 // Redirect to payment URL
                 return redirect($paymentResponse['redirectUrl']);
-                
+
             } catch (\Exception $e) {
                 Log::channel('tigo')->error('Mixx Payment initiation failed', [
                     'error' => $e->getMessage(),
@@ -905,17 +907,17 @@ class RoundTripController extends Controller
 
             try {
                 $dpo = new PDOController();
-                
+
                 // Clear roundtrip session data after storing in bookings
                 session()->forget(['firstbooking', 'secondbooking']);
-                
+
                 Log::info('Initiating DPO Payment for Round Trip', [
                     'amount' => $amount,
                     'customer_name' => $commonPaymentInfo['customer_name'] ?? 'Customer',
                     'customer_number' => $commonPaymentInfo['customer_number'],
                     'customer_email' => $commonPaymentInfo['customer_email']
                 ]);
-                
+
                 $result = $dpo->initiatePayment(
                     round($amount),
                     $commonPaymentInfo['customer_name'] ?? 'Customer',
@@ -924,12 +926,12 @@ class RoundTripController extends Controller
                     $commonPaymentInfo['customer_email'],
                     uniqid('Round_')
                 );
-                
+
                 Log::info('DPO Payment Initiation Result', [
                     'result_type' => gettype($result),
                     'result' => $result
                 ]);
-                
+
                 return $result;
             } catch (\Exception $e) {
                 // Log the error
@@ -945,22 +947,22 @@ class RoundTripController extends Controller
                 'booking1_code' => $booking1->booking_code ?? 'Not set',
                 'booking2_code' => $booking2->booking_code ?? 'Not set'
             ]);
-            
+
             try {
                 // Process cash payment for both bookings
                 $cashController = new CashController();
-                
+
                 // Process first booking
                 $result1 = $cashController->cash($booking1, uniqid('Round_Cash_'));
                 Log::info('Cash Payment Result 1', ['result' => $result1]);
-                
+
                 // Process second booking  
                 $result2 = $cashController->cash($booking2, uniqid('Round_Cash_'));
                 Log::info('Cash Payment Result 2', ['result' => $result2]);
-                
+
                 // Clear session data
                 session()->forget(['booking1', 'booking2', 'is_round', 'booking_form']);
-                
+
                 return redirect()->route('round.trip.payment.success')->with('success', 'Round trip bookings created successfully via cash!');
             } catch (\Exception $e) {
                 Log::error('Cash Payment processing failed', [
@@ -971,9 +973,37 @@ class RoundTripController extends Controller
                 ]);
                 return redirect()->route('round.trip.payment')->withErrors(['payment_error' => 'Cash Payment processing failed: ' . $e->getMessage()]);
             }
+        } elseif ($method == 'clickpesa') {
+            try {
+                $clickpesa = new ClickPesaController();
+
+                // Clear roundtrip session data after storing in bookings
+                session()->forget(['firstbooking', 'secondbooking']);
+
+                Log::info('Initiating ClickPesa Payment for Round Trip', [
+                    'amount' => $amount,
+                    'customer_name' => $commonPaymentInfo['customer_name'] ?? 'Customer',
+                    'customer_number' => $commonPaymentInfo['customer_number'],
+                    'customer_email' => $commonPaymentInfo['customer_email']
+                ]);
+
+                $result = $clickpesa->initiatePayment(
+                    round($amount),
+                    $commonPaymentInfo['customer_name'] ?? 'Customer',
+                    $commonPaymentInfo['customer_name'] ?? 'Customer',
+                    $commonPaymentInfo['customer_number'],
+                    $commonPaymentInfo['customer_email'],
+                    uniqid('Round_')
+                );
+
+                return $result;
+            } catch (\Exception $e) {
+                Log::error('ClickPesa Payment initiation failed: ' . $e->getMessage());
+                return redirect()->route('round.trip.payment')->withErrors(['payment_error' => 'ClickPesa Payment initiation failed: ' . $e->getMessage()]);
+            }
         }
 
-        
+
     }
 
     public function paymentSuccess()

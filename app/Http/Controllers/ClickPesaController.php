@@ -298,20 +298,15 @@ class ClickPesaController extends Controller
      */
     private function getAccessToken()
     {
-        $tokenEndpoint = 'https://api.clickpesa.com/auth/login';
+        $tokenEndpoint = 'https://api.clickpesa.com/third-parties/generate-token';
         
-        $payload = [
-            'apiKey' => $this->apiKey,
-            'apiSecret' => $this->apiSecret
-        ];
-
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $tokenEndpoint);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json'
+            'api-key: ' . $this->apiKey,
+            'client-id: ' . $this->apiSecret  // client-id is the API Secret
         ]);
         
         $response = curl_exec($ch);
@@ -327,7 +322,21 @@ class ClickPesaController extends Controller
         }
 
         $jsonResponse = json_decode($response);
-        return isset($jsonResponse->accessToken) ? $jsonResponse->accessToken : null;
+        
+        // Response format: {"success":true,"token":"Bearer eyJ..."}
+        if (isset($jsonResponse->success) && $jsonResponse->success && isset($jsonResponse->token)) {
+            // Token already includes "Bearer " prefix, so extract just the token part
+            $token = $jsonResponse->token;
+            if (strpos($token, 'Bearer ') === 0) {
+                $token = substr($token, 7); // Remove "Bearer " prefix
+            }
+            return $token;
+        }
+        
+        Log::error('ClickPesa Token Response Invalid', [
+            'response' => $jsonResponse
+        ]);
+        return null;
     }
 
     /**

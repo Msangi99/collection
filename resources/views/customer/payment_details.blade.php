@@ -23,7 +23,8 @@
                     <div class="bg-white rounded-xl shadow-md overflow-hidden">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                                {{ __('customer/busroot.contact_details') }}</h3>
+                                {{ __('customer/busroot.contact_details') }}
+                            </h3>
                             <p class="text-sm text-gray-600 mb-4">{{ __('customer/busroot.fill_traveler_details') }}</p>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -63,7 +64,8 @@
                     <div class="bg-white rounded-xl shadow-md overflow-hidden">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                                {{ __('customer/busroot.payment_options') }}</h3>
+                                {{ __('customer/busroot.payment_options') }}
+                            </h3>
 
                             <div class="flex flex-col md:flex-row gap-6">
                                 <!-- Payment Methods Sidebar -->
@@ -84,13 +86,18 @@
                                         </button>
                                         @if (auth()->user()->role == 'vender')
                                             <button type="button"
-                                                class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100"
-                                                id="tab3-btn" data-bs-toggle="tab" data-bs-target="#tab3" role="tab"
-                                                aria-controls="tab3">
+                                                class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100" id="tab3-btn"
+                                                data-bs-toggle="tab" data-bs-target="#tab3" role="tab" aria-controls="tab3">
                                                 <i class="fas fa-money-bill mr-2"></i>
                                                 {{ __('customer/busroot.cash_payment') }}
                                             </button>
                                         @endif
+                                        <button type="button"
+                                            class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100" id="tab5-btn"
+                                            data-bs-toggle="tab" data-bs-target="#tab5" role="tab" aria-controls="tab5">
+                                            <i class="fas fa-wallet mr-2"></i>
+                                            {{ __('customer/busroot.clickpesa_payment') }}
+                                        </button>
                                         <button type="button"
                                             class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100" id="tab4-btn"
                                             data-bs-toggle="tab" data-bs-target="#tab4" role="tab" aria-controls="tab4">
@@ -103,22 +110,24 @@
                                 <div class="md:w-2/3">
                                     <div class="tab-content">
                                         <!-- Mixx By Yas Payment -->
-                                        <div id="tab1" class="tab-pane active" role="tabpanel"
-                                            aria-labelledby="tab1-btn">
+                                        <div id="tab1" class="tab-pane active" role="tabpanel" aria-labelledby="tab1-btn">
                                             <form id="tigo" action="{{ route('customer.verify') }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="payment_method" value="mixx">
                                                 <div class="space-y-4">
                                                     <div class="p-4 bg-blue-50 rounded-lg">
                                                         <p class="text-sm text-gray-700 mb-1">
-                                                            {{ __('customer/busroot.session_expiry_warning') }}</p>
+                                                            {{ __('customer/busroot.session_expiry_warning') }}
+                                                        </p>
                                                         <p class="text-lg font-bold text-green-600">
                                                             {{ __('customer/busroot.total') }} {{ $currency }}.
-                                                            {{ convert_money($price + $fees) }}</p>
+                                                            {{ convert_money($price + $fees) }}
+                                                        </p>
                                                     </div>
 
                                                     <p class="text-gray-700">
-                                                        {{ __('customer/busroot.enter_yas_mobile_number') }}</p>
+                                                        {{ __('customer/busroot.enter_yas_mobile_number') }}
+                                                    </p>
 
                                                     <div>
                                                         <label for="paymentContact"
@@ -134,8 +143,8 @@
 
                                                     <div class="flex items-start">
                                                         <div class="flex items-center h-5">
-                                                            <input id="payment_term_0" name="payment_term_0"
-                                                                type="checkbox" value="1" checked
+                                                            <input id="payment_term_0" name="payment_term_0" type="checkbox"
+                                                                value="1" checked
                                                                 class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                         </div>
                                                         <div class="ml-3 text-sm">
@@ -207,10 +216,12 @@
                                                 <div class="space-y-4">
                                                     <div class="p-4 bg-blue-50 rounded-lg">
                                                         <p class="text-sm text-gray-700 mb-1">
-                                                            {{ __('customer/busroot.session_expiry_warning') }}</p>
+                                                            {{ __('customer/busroot.session_expiry_warning') }}
+                                                        </p>
                                                         <p class="text-lg font-bold text-green-600">
                                                             {{ __('customer/busroot.total') }} {{ $currency }}.
-                                                            {{ convert_money($price + $fees) }}</p>
+                                                            {{ convert_money($price + $fees) }}
+                                                        </p>
                                                     </div>
 
                                                     <div>
@@ -227,52 +238,52 @@
                                                     </div>
 
                                                     <!--
-                                                    <div>
-                                                        <label for="first_name"
-                                                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.first_name') }}</label>
-                                                        <input type="text" name="first_name" id="first_name"
-                                                            class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                            placeholder="{{ __('customer/busroot.enter_first_name') }}"
-                                                            required>
-                                                    </div>
-                                                    -->
+                                                        <div>
+                                                            <label for="first_name"
+                                                                class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.first_name') }}</label>
+                                                            <input type="text" name="first_name" id="first_name"
+                                                                class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                placeholder="{{ __('customer/busroot.enter_first_name') }}"
+                                                                required>
+                                                        </div>
+                                                        -->
 
                                                     <!--
-                                                    <div>
-                                                        <label for="last_name"
-                                                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.last_name') }}</label>
-                                                        <input type="text" name="last_name" id="last_name"
-                                                            class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                            placeholder="{{ __('customer/busroot.enter_last_name') }}"
-                                                            required>
-                                                    </div>
-                                                    -->
+                                                        <div>
+                                                            <label for="last_name"
+                                                                class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.last_name') }}</label>
+                                                            <input type="text" name="last_name" id="last_name"
+                                                                class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                placeholder="{{ __('customer/busroot.enter_last_name') }}"
+                                                                required>
+                                                        </div>
+                                                        -->
 
                                                     <div>
                                                         <label for="phone"
                                                             class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.mobile_number') }}</label>
                                                         <!-- <input type="text" name="customer_number" id="phone"
-                                                            maxlength="12"
-                                                            class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 onlydigits"
-                                                            placeholder="{{ __('customer/busroot.enter_mobile_number') }}"
-                                                            required> -->
+                                                                maxlength="12"
+                                                                class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 onlydigits"
+                                                                placeholder="{{ __('customer/busroot.enter_mobile_number') }}"
+                                                                required> -->
                                                     </div>
 
                                                     <!--
-                                                    <div>
-                                                        <label for="email"
-                                                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.email_address') }}</label>
-                                                        <input type="email" name="customer_email" id="email"
-                                                            class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                            placeholder="{{ __('customer/busroot.enter_email_address') }}"
-                                                            required>
-                                                    </div>
-                                                    -->
+                                                        <div>
+                                                            <label for="email"
+                                                                class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.email_address') }}</label>
+                                                            <input type="email" name="customer_email" id="email"
+                                                                class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                placeholder="{{ __('customer/busroot.enter_email_address') }}"
+                                                                required>
+                                                        </div>
+                                                        -->
 
                                                     <div class="flex items-start">
                                                         <div class="flex items-center h-5">
-                                                            <input id="dpo_terms" name="dpo_terms" type="checkbox"
-                                                                value="1" checked
+                                                            <input id="dpo_terms" name="dpo_terms" type="checkbox" value="1"
+                                                                checked
                                                                 class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                         </div>
                                                         <div class="ml-3 text-sm">
@@ -345,10 +356,12 @@
                                                 <div class="space-y-4">
                                                     <div class="p-4 bg-blue-50 rounded-lg">
                                                         <p class="text-sm text-gray-700 mb-1">
-                                                            {{ __('customer/busroot.session_expiry_warning') }}</p>
+                                                            {{ __('customer/busroot.session_expiry_warning') }}
+                                                        </p>
                                                         <p class="text-lg font-bold text-green-600">
                                                             {{ __('customer/busroot.total') }} {{ $currency }}.
-                                                            {{ convert_money($price + $fees) }}</p>
+                                                            {{ convert_money($price + $fees) }}
+                                                        </p>
                                                     </div>
 
                                                     <div class="bg-white rounded-xl shadow-md overflow-hidden mt-4">
@@ -406,8 +419,7 @@
 
                                         <!-- Resave Ticket -->
                                         <div id="tab4" class="tab-pane" role="tabpanel" aria-labelledby="tab4-btn">
-                                            <form id="resave-form" action="{{ route('customer.verify') }}"
-                                                method="POST">
+                                            <form id="resave-form" action="{{ route('customer.verify') }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="payment_method" value="resave">
                                                 <input type="hidden" name="resave_ticket" value="1">
@@ -415,13 +427,16 @@
                                                 <div class="space-y-4">
                                                     <div class="p-4 bg-yellow-50 rounded-lg">
                                                         <p class="text-sm text-yellow-700 mb-1">
-                                                            {{ __('customer/busroot.resave_warning') }}</p>
+                                                            {{ __('customer/busroot.resave_warning') }}
+                                                        </p>
                                                         <p class="text-lg font-bold text-yellow-800">
                                                             {{ __('customer/busroot.total_to_resave') }}
-                                                            {{ $currency }}. {{ convert_money($price + $fees) }}</p>
+                                                            {{ $currency }}. {{ convert_money($price + $fees) }}
+                                                        </p>
                                                     </div>
                                                     <p class="text-gray-700">
-                                                        {{ __('customer/busroot.resave_description') }}</p>
+                                                        {{ __('customer/busroot.resave_description') }}
+                                                    </p>
 
                                                     <div class="flex items-start">
                                                         <div class="flex items-center h-5">
@@ -489,6 +504,102 @@
                                                 </div>
                                             </form>
                                         </div>
+
+                                        <!-- ClickPesa Payment -->
+                                        <div id="tab5" class="tab-pane" role="tabpanel" aria-labelledby="tab5-btn">
+                                            <form id="clickpesa" action="{{ route('customer.verify') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="payment_method" value="clickpesa">
+                                                <div class="space-y-4">
+                                                    <div class="p-4 bg-blue-50 rounded-lg">
+                                                        <p class="text-sm text-gray-700 mb-1">
+                                                            {{ __('customer/busroot.session_expiry_warning') }}
+                                                        </p>
+                                                        <p class="text-lg font-bold text-green-600">
+                                                            {{ __('customer/busroot.total') }} {{ $currency }}.
+                                                            {{ convert_money($price + $fees) }}
+                                                        </p>
+                                                    </div>
+
+                                                    <div>
+                                                        <label for="clickpesa_amount"
+                                                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('customer/busroot.amount') }}</label>
+                                                        <input type="text" name="amount_2" id="clickpesa_amount"
+                                                            value="{{ convert_money($price + $fees) }}" readonly
+                                                            class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            required>
+                                                        <input type="hidden" name="amount" id="clickpesa_amount"
+                                                            value="{{ $price + $fees }}" readonly
+                                                            class="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            required>
+                                                    </div>
+
+                                                    <div class="flex items-start">
+                                                        <div class="flex items-center h-5">
+                                                            <input id="clickpesa_terms" name="clickpesa_terms"
+                                                                type="checkbox" value="1" checked
+                                                                class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                        </div>
+                                                        <div class="ml-3 text-sm">
+                                                            <label for="clickpesa_terms"
+                                                                class="font-medium text-gray-700">{{ __('customer/busroot.i_accept') }}
+                                                                <a href="{{ route('ticket.purchase') }}"
+                                                                    class="text-blue-600 hover:text-blue-500">{{ __('customer/busroot.terms_and_conditions') }}</a></label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="bg-white rounded-xl shadow-md overflow-hidden mt-4">
+                                                        <div class="p-4">
+                                                            <h4 class="text-md font-semibold text-gray-800 mb-3">
+                                                                <i class="fas fa-receipt mr-2 text-blue-500"></i>
+                                                                {{ __('customer/busroot.order_summary') }}
+                                                            </h4>
+                                                            <div class="space-y-2">
+                                                                <div class="flex justify-between">
+                                                                    <span
+                                                                        class="text-sm text-gray-600">{{ __('customer/busroot.discount') }}</span>
+                                                                    <span class="text-sm font-medium text-gray-500">TZS
+                                                                        {{ number_format($dis, 2) }}</span>
+                                                                </div>
+                                                                @if (isset($ins) && $ins > 0)
+                                                                    <div class="flex justify-between">
+                                                                        <span
+                                                                            class="text-sm text-gray-600">{{ __('customer/busroot.insurance') }}</span>
+                                                                        <span class="text-sm font-medium text-gray-500">TZS
+                                                                            {{ number_format($ins) }}</span>
+                                                                    </div>
+                                                                @endif
+                                                                <div class="flex justify-between">
+                                                                    <span
+                                                                        class="text-sm text-gray-600">{{ __('customer/busroot.system_charge') }}</span>
+                                                                    <span class="text-sm font-medium text-gray-500">TZS
+                                                                        {{ convert_money($fees) }}</span>
+                                                                </div>
+                                                                <div class="flex justify-between">
+                                                                    <span
+                                                                        class="text-sm text-gray-600">{{ __('customer/busroot.bus_fare') }}</span>
+                                                                    <span class="text-sm font-medium text-gray-500">TZS
+                                                                        {{ convert_money($price - $ins) }}</span>
+                                                                </div>
+                                                                <div
+                                                                    class="border-t border-gray-200 pt-2 mt-2 flex justify-between">
+                                                                    <span
+                                                                        class="text-base font-semibold">{{ __('customer/busroot.total_payable') }}</span>
+                                                                    <span class="text-base font-bold text-blue-600">
+                                                                        TZS {{ convert_money($price + $fees) }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit"
+                                                        class="w-full mt-4 py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-medium rounded-lg shadow-md transition-all duration-300 flex items-center justify-center">
+                                                        <i class="fas fa-lock mr-2"></i>
+                                                        {{ __('customer/busroot.proceed_to_pay') }}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -551,7 +662,7 @@
         function startTimer(duration, displayMinutes, displaySeconds) {
             let timer = duration,
                 minutes, seconds;
-            setInterval(function() {
+            setInterval(function () {
                 minutes = parseInt(timer / 60, 10);
                 seconds = parseInt(timer % 60, 10);
 
@@ -567,7 +678,7 @@
             }, 1000);
         }
 
-        window.onload = function() {
+        window.onload = function () {
             const fiveMinutes = 60 * 6 + 40, // 6 minutes and 40 seconds
                 displayMinutes = document.querySelector('#minutes'),
                 displaySeconds = document.querySelector('#seconds');
@@ -575,7 +686,7 @@
         };
 
         // Form submission handler for Tigo form
-        document.getElementById('tigo').addEventListener('submit', function(event) {
+        document.getElementById('tigo').addEventListener('submit', function (event) {
             event.preventDefault();
 
             // Get contact details
@@ -609,7 +720,7 @@
         });
 
         // Form submission handler for DPO form
-        document.getElementById('dpo').addEventListener('submit', function(event) {
+        document.getElementById('dpo').addEventListener('submit', function (event) {
             event.preventDefault();
 
             // Get contact details
@@ -643,7 +754,7 @@
         });
 
         // Form submission handler for Cash form
-        document.getElementById('cash').addEventListener('submit', function(event) {
+        document.getElementById('cash').addEventListener('submit', function (event) {
             event.preventDefault();
 
             // Get contact details
@@ -677,7 +788,41 @@
         });
 
         // Form submission handler for Resave form
-        document.getElementById('resave-form').addEventListener('submit', function(event) {
+        document.getElementById('resave-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Get contact details
+            const code = document.getElementById('countrycode').value;
+            const phone = document.getElementById('contactNumber').value;
+            const email = document.getElementById('contactEmail').value;
+
+            // Create hidden inputs
+            const codeInput = document.createElement('input');
+            codeInput.type = 'hidden';
+            codeInput.name = 'countrycode';
+            codeInput.value = code;
+
+            const phoneInput = document.createElement('input');
+            phoneInput.type = 'hidden';
+            phoneInput.name = 'contactNumber';
+            phoneInput.value = phone;
+
+            const emailInput = document.createElement('input');
+            emailInput.type = 'hidden';
+            emailInput.name = 'contactEmail';
+            emailInput.value = email;
+
+            // Append to form
+            this.appendChild(codeInput);
+            this.appendChild(phoneInput);
+            this.appendChild(emailInput);
+
+            // Submit form
+            this.submit();
+        });
+
+        // Form submission handler for ClickPesa form
+        document.getElementById('clickpesa').addEventListener('submit', function (event) {
             event.preventDefault();
 
             // Get contact details

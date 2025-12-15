@@ -27,10 +27,9 @@ class ClickPesaController extends Controller
 
     public function __construct()
     {
-        // TODO: Move these to .env file for production
-        $this->apiKey = env('CLICKPESA_API_KEY', 'test_api_key'); // Test API Key
-        $this->apiSecret = env('CLICKPESA_API_SECRET', 'test_api_secret'); // Test API Secret
-        $this->endpoint = env('CLICKPESA_ENDPOINT', 'https://clickpesa.com/webshop/generate-checkout-url'); // API endpoint - LIVE
+        $this->apiKey = env('CLICKPESA_API_KEY'); // Your ClickPesa API Key
+        $this->apiSecret = env('CLICKPESA_API_SECRET'); // Your ClickPesa API Secret
+        $this->endpoint = env('CLICKPESA_ENDPOINT', 'https://api.clickpesa.com/third-parties/payments/initiate-ussd-push-request');
         $this->callbackUrl = route('clickpesa.callback');
     }
 
@@ -66,37 +65,40 @@ class ClickPesaController extends Controller
         }
 
         // Check if we have a valid response with checkout URL
-        // ClickPesa may return checkoutUrl, checkout_url, or url
+        // ClickPesa USSD-PUSH doesn't return a URL, it sends payment request to phone
+        // Response includes: id, status, channel, orderReference, etc.
         $checkoutUrl = null;
-        if ($checkoutResponse && isset($checkoutResponse->checkoutUrl)) {
-            $checkoutUrl = (string) $checkoutResponse->checkoutUrl;
-        } elseif ($checkoutResponse && isset($checkoutResponse->checkout_url)) {
-            $checkoutUrl = (string) $checkoutResponse->checkout_url;
-        } elseif ($checkoutResponse && isset($checkoutResponse->url)) {
-            $checkoutUrl = (string) $checkoutResponse->url;
-        }
-
-        if ($checkoutUrl) {
-            $reference = isset($checkoutResponse->reference) 
-                ? (string) $checkoutResponse->reference 
+        
+        // For USSD-PUSH, we check if the request was successfully initiated
+        if ($checkoutResponse && isset($checkoutResponse->id) && isset($checkoutResponse->status)) {
+            $transactionId = (string) $checkoutResponse->id;
+            $status = (string) $checkoutResponse->status;
+            $orderRef = isset($checkoutResponse->orderReference) 
+                ? (string) $checkoutResponse->orderReference 
                 : $orderDetails['order_id'];
 
-            // Log successful checkout creation
-            Log::info('ClickPesa Checkout Created Successfully', [
+            // Log successful USSD-PUSH initiation
+            Log::info('ClickPesa USSD-PUSH Initiated Successfully', [
                 'order_id' => $orderDetails['order_id'],
-                'reference' => $reference,
-                'amount' => $orderDetails['amount'],
-                'checkout_url' => $checkoutUrl
+                'transaction_id' => $transactionId,
+                'status' => $status,
+                'amount' => $orderDetails['amount']
             ]);
 
-            // Redirect to ClickPesa checkout page
-            return redirect()->away($checkoutUrl);
+            // Redirect to a waiting page where user confirms payment on their phone
+            return view('clickpesa.payment_waiting', [
+                'transaction_id' => $transactionId,
+                'order_id' => $orderRef,
+                'amount' => $orderDetails['amount'],
+                'status' => $status,
+                'message' => 'Payment request sent to your phone. Please check your mobile device and enter your PIN to complete the payment.'
+            ]);
         } else {
             $errorMessage = isset($checkoutResponse->message)
                 ? (string) $checkoutResponse->message
-                : "Unknown error creating checkout session";
+                : "Unknown error creating USSD-PUSH request";
 
-            Log::error('ClickPesa Checkout Creation Failed', [
+            Log::error('ClickPesa USSD-PUSH Request Failed', [
                 'order_id' => $orderDetails['order_id'],
                 'error' => $errorMessage,
                 'response' => $checkoutResponse,
@@ -292,27 +294,73 @@ class ClickPesaController extends Controller
     }
 
     /**
-     * Create ClickPesa checkout session
+     * Get ClickPesa access token
+     */
+    private function getAccessToken()
+    {
+        $tokenEndpoint = 'https://api.clickpesa.com/auth/login';
+        
+        $payload = [
+            'apiKey' => $this->apiKey,
+            'apiSecret' => $this->apiSecret
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $tokenEndpoint);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json'
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode != 200) {
+            Log::error('ClickPesa Token Error', [
+                'http_code' => $httpCode,
+                'response' => $response
+            ]);
+            return null;
+        }
+
+        $jsonResponse = json_decode($response);
+        return isset($jsonResponse->accessToken) ? $jsonResponse->accessToken : null;
+    }
+
+    /**
+     * Create ClickPesa USSD-PUSH request
      */
     private function createCheckoutSession($orderDetails)
     {
-        // ClickPesa expects orderItems array format
+        // Get access token first
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return "Failed to obtain access token from ClickPesa";
+        }
+
+        // Format phone number (remove + and ensure it starts with country code)
+        $phoneNumber = $orderDetails['phone'];
+        $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber); // Remove non-digits
+        if (substr($phoneNumber, 0, 1) === '0') {
+            $phoneNumber = '255' . substr($phoneNumber, 1); // Convert 0... to 255...
+        } elseif (substr($phoneNumber, 0, 3) !== '255') {
+            $phoneNumber = '255' . $phoneNumber; // Add country code if missing
+        }
+
+        // ClickPesa USSD-PUSH API format
         $payload = [
-            'orderItems' => [[
-                'name' => 'Bus Ticket - ' . $orderDetails['order_id'],
-                'type' => 'service',
-                'unit' => 'ticket',
-                'price' => (float) $orderDetails['amount'],
-                'quantity' => 1
-            ]],
+            'amount' => (string) $orderDetails['amount'],
+            'currency' => 'TZS',
             'orderReference' => $orderDetails['order_id'],
-            'merchantId' => $this->apiKey,
-            'callbackURL' => $this->callbackUrl,
+            'phoneNumber' => $phoneNumber,
         ];
 
         $jsonPayload = json_encode($payload);
 
-        Log::debug('ClickPesa Request Payload', [
+        Log::debug('ClickPesa USSD-PUSH Request', [
             'order_id' => $orderDetails['order_id'],
             'endpoint' => $this->endpoint,
             'payload' => $payload
@@ -324,7 +372,8 @@ class ClickPesaController extends Controller
         curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json'
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $accessToken
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

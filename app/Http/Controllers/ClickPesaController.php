@@ -61,7 +61,7 @@ class ClickPesaController extends Controller
                 'error' => $checkoutResponse,
             ]);
 
-            return back()->withErrors(['clickpesa_error' => $checkoutResponse]);
+            return back()->with('error', 'ClickPesa Payment Failed: ' . $checkoutResponse);
         }
 
         // Check if we have a valid response with checkout URL
@@ -105,7 +105,7 @@ class ClickPesaController extends Controller
                 'response_keys' => $checkoutResponse ? array_keys((array)$checkoutResponse) : []
             ]);
 
-            return back()->withErrors(['clickpesa_error' => $errorMessage]);
+            return back()->with('error', $errorMessage);
         }
     }
 

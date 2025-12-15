@@ -30,7 +30,7 @@ class ClickPesaController extends Controller
         // TODO: Move these to .env file for production
         $this->apiKey = env('CLICKPESA_API_KEY', 'test_api_key'); // Test API Key
         $this->apiSecret = env('CLICKPESA_API_SECRET', 'test_api_secret'); // Test API Secret
-        $this->endpoint = env('CLICKPESA_ENDPOINT', 'https://api.clickpesa.com/v1'); // API endpoint
+        $this->endpoint = env('CLICKPESA_ENDPOINT', 'https://clickpesa.com/webshop/generate-checkout-url'); // API endpoint - LIVE
         $this->callbackUrl = route('clickpesa.callback');
     }
 
@@ -66,15 +66,27 @@ class ClickPesaController extends Controller
         }
 
         // Check if we have a valid response with checkout URL
-        if ($checkoutResponse && isset($checkoutResponse->checkout_url)) {
+        // ClickPesa may return checkoutUrl, checkout_url, or url
+        $checkoutUrl = null;
+        if ($checkoutResponse && isset($checkoutResponse->checkoutUrl)) {
+            $checkoutUrl = (string) $checkoutResponse->checkoutUrl;
+        } elseif ($checkoutResponse && isset($checkoutResponse->checkout_url)) {
             $checkoutUrl = (string) $checkoutResponse->checkout_url;
-            $reference = (string) $checkoutResponse->reference;
+        } elseif ($checkoutResponse && isset($checkoutResponse->url)) {
+            $checkoutUrl = (string) $checkoutResponse->url;
+        }
+
+        if ($checkoutUrl) {
+            $reference = isset($checkoutResponse->reference) 
+                ? (string) $checkoutResponse->reference 
+                : $orderDetails['order_id'];
 
             // Log successful checkout creation
             Log::info('ClickPesa Checkout Created Successfully', [
                 'order_id' => $orderDetails['order_id'],
                 'reference' => $reference,
-                'amount' => $orderDetails['amount']
+                'amount' => $orderDetails['amount'],
+                'checkout_url' => $checkoutUrl
             ]);
 
             // Redirect to ClickPesa checkout page
@@ -87,7 +99,8 @@ class ClickPesaController extends Controller
             Log::error('ClickPesa Checkout Creation Failed', [
                 'order_id' => $orderDetails['order_id'],
                 'error' => $errorMessage,
-                'response' => $checkoutResponse
+                'response' => $checkoutResponse,
+                'response_keys' => $checkoutResponse ? array_keys((array)$checkoutResponse) : []
             ]);
 
             return back()->withErrors(['clickpesa_error' => $errorMessage]);
@@ -283,30 +296,35 @@ class ClickPesaController extends Controller
      */
     private function createCheckoutSession($orderDetails)
     {
+        // ClickPesa expects orderItems array format
         $payload = [
-            'merchant_reference' => $orderDetails['order_id'],
-            'amount' => (float) $orderDetails['amount'],
-            'currency' => 'TZS',
-            'customer' => [
-                'first_name' => $orderDetails['first_name'],
-                'last_name' => $orderDetails['last_name'],
-                'email' => $orderDetails['email'],
-                'phone' => $orderDetails['phone'],
-            ],
-            'redirect_url' => $orderDetails['redirect_url'],
-            'cancel_url' => $orderDetails['cancel_url'],
+            'orderItems' => [[
+                'name' => 'Bus Ticket - ' . $orderDetails['order_id'],
+                'type' => 'service',
+                'unit' => 'ticket',
+                'price' => (float) $orderDetails['amount'],
+                'quantity' => 1
+            ]],
+            'orderReference' => $orderDetails['order_id'],
+            'merchantId' => $this->apiKey,
+            'callbackURL' => $this->callbackUrl,
         ];
 
         $jsonPayload = json_encode($payload);
 
+        Log::debug('ClickPesa Request Payload', [
+            'order_id' => $orderDetails['order_id'],
+            'endpoint' => $this->endpoint,
+            'payload' => $payload
+        ]);
+
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->endpoint . '/checkout');
+        curl_setopt($ch, CURLOPT_URL, $this->endpoint);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $this->apiKey
+            'Content-Type: application/json'
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

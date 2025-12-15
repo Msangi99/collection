@@ -290,6 +290,7 @@ return [
     'payment_methods' => 'Payment Methods',
     'mixx_by_yas' => 'Mixx By Yas',
     'dpo_payment' => 'DPO Payment',
+    'clickpesa_payment' => 'ClickPesa Payment',
     'session_expiry_warning' => 'Please complete your payment within the session expiry time.',
     'total' => 'Total',
     'enter_yas_mobile_number' => 'Enter your Mixx by Yas mobile number',

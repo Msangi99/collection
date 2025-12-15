@@ -91,7 +91,7 @@ return [
     'selected' => 'Selected',
     'booked' => 'Booked',
     'confirm_seats' => 'Confirm Seats',
-    'trip_details' => 'Trip Details', 
+    'trip_details' => 'Trip Details',
     'departure' => 'Departure',
     'arrival' => 'Arrival',
     'bus' => 'Bus',
@@ -165,6 +165,7 @@ return [
     'terms_and_conditions' => 'terms and conditions',
     'proceed_to_pay' => 'Proceed to Pay',
     'dpo_payment' => 'DPO Payment',
+    'clickpesa_payment' => 'ClickPesa Payment',
 
     'amount' => 'Amount',
     'first_name' => 'First Name',

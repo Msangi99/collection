@@ -35,7 +35,7 @@ return [
     'schedule_details' => 'Maelezo ya Ratiba',
     'close' => 'Funga',
     /////////booking form////////////
-   'select_your_journey_points' => 'Chagua Vituo vya Safari Yako',
+    'select_your_journey_points' => 'Chagua Vituo vya Safari Yako',
     'choose_pickup_dropping' => 'Chagua maeneo ya kuchukulia na kushukia kwa safari yako',
     'bus_operator' => 'Mwendeshaji wa Basi',
     'pickup_point' => 'Mahali pa Kuchukulia',
@@ -80,7 +80,7 @@ return [
     'adult' => 'Mtu Mzima',
     'child' => 'Mtoto',
     'senior' => 'Mzee',
-     // From seats.blade.php
+    // From seats.blade.php
     'select_your_seats' => 'Chagua Viti Vyako',
     'yutong_f12_bus' => 'Basi la Yutong F12 -',
     'per_seat' => 'kwa kila kiti',
@@ -165,6 +165,7 @@ return [
     'terms_and_conditions' => 'sheria na masharti',
     'proceed_to_pay' => 'Endelea Kulipa',
     'dpo_payment' => 'Malipo ya DPO',
+    'clickpesa_payment' => 'Malipo ya ClickPesa',
 
     'amount' => 'Kiasi',
     'first_name' => 'Jina la Kwanza',

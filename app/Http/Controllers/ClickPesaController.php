@@ -404,7 +404,9 @@ class ClickPesaController extends Controller
                 'endpoint' => $this->endpoint,
                 'curl_info' => $curlInfo
             ]);
-            return "HTTP Error: $httpCode - Failed to connect to ClickPesa API";
+            
+            // Return full response as requested by user
+            return $response;
         }
 
         $jsonResponse = json_decode($response);
@@ -443,9 +445,10 @@ class ClickPesaController extends Controller
         if ($httpCode != 200) {
             Log::error('ClickPesa Verify Transaction HTTP Error', [
                 'http_code' => $httpCode,
-                'reference' => $reference
+                'reference' => $reference,
+                'response' => $response // Include the full response in the log for debugging
             ]);
-            return "HTTP Error: $httpCode - Failed to connect to ClickPesa API";
+            return $response; // Return the full response string
         }
 
         $jsonResponse = json_decode($response);

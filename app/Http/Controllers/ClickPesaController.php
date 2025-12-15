@@ -359,11 +359,14 @@ class ClickPesaController extends Controller
             $phoneNumber = '255' . $phoneNumber; // Add country code if missing
         }
 
+        // ClickPesa requires alphanumeric-only order reference (no hyphens or special chars)
+        $orderReference = preg_replace('/[^a-zA-Z0-9]/', '', $orderDetails['order_id']);
+
         // ClickPesa USSD-PUSH API format
         $payload = [
             'amount' => (string) $orderDetails['amount'],
             'currency' => 'TZS',
-            'orderReference' => $orderDetails['order_id'],
+            'orderReference' => $orderReference,
             'phoneNumber' => $phoneNumber,
         ];
 
@@ -372,7 +375,9 @@ class ClickPesaController extends Controller
         Log::debug('ClickPesa USSD-PUSH Request', [
             'order_id' => $orderDetails['order_id'],
             'endpoint' => $this->endpoint,
-            'payload' => $payload
+            'payload' => $payload,
+            'phone_formatted' => $phoneNumber,
+            'token_preview' => substr($accessToken, 0, 20) . '...'
         ]);
 
         $ch = curl_init();
@@ -386,13 +391,18 @@ class ClickPesaController extends Controller
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        $curlInfo = curl_getinfo($ch);
         curl_close($ch);
 
         if ($httpCode != 200 && $httpCode != 201) {
             Log::error('ClickPesa Create Checkout HTTP Error', [
                 'http_code' => $httpCode,
                 'order_id' => $orderDetails['order_id'],
-                'response' => $response
+                'response' => $response,
+                'curl_error' => $curlError,
+                'endpoint' => $this->endpoint,
+                'curl_info' => $curlInfo
             ]);
             return "HTTP Error: $httpCode - Failed to connect to ClickPesa API";
         }

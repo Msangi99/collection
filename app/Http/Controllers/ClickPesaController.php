@@ -427,16 +427,154 @@ class ClickPesaController extends Controller
     }
 
     /**
+     * Check payment status via AJAX polling
+     * Called from the waiting page to check if payment is complete
+     */
+    public function checkPaymentStatus(Request $request)
+    {
+        $orderReference = $request->get('order_reference');
+        
+        if (!$orderReference) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Order reference is required'
+            ], 400);
+        }
+
+        // Get access token
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Failed to obtain access token'
+            ], 500);
+        }
+
+        // Call ClickPesa API to check payment status
+        $checkUrl = 'https://api.clickpesa.com/third-parties/payments/' . $orderReference;
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $checkUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $accessToken
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        Log::debug('ClickPesa Payment Status Check', [
+            'order_reference' => $orderReference,
+            'http_code' => $httpCode,
+            'response' => $response
+        ]);
+
+        if ($httpCode != 200) {
+            return response()->json([
+                'success' => false,
+                'status' => 'pending',
+                'message' => 'Payment still pending or error checking status'
+            ]);
+        }
+
+        $jsonResponse = json_decode($response);
+        
+        if ($jsonResponse === null) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Error parsing response'
+            ], 500);
+        }
+
+        // API returns an array, get first item
+        $paymentData = is_array($jsonResponse) ? ($jsonResponse[0] ?? null) : $jsonResponse;
+        
+        if (!$paymentData) {
+            return response()->json([
+                'success' => false,
+                'status' => 'pending',
+                'message' => 'No payment data found'
+            ]);
+        }
+
+        $status = strtoupper($paymentData->status ?? 'PENDING');
+        
+        if ($status === 'SUCCESS') {
+            // Payment successful - store payment data in session for callback processing
+            Session::put('clickpesa_payment_data', $paymentData);
+            
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Payment completed successfully',
+                'redirect_url' => route('clickpesa.callback', [
+                    'reference' => $orderReference,
+                    'status' => 'success'
+                ])
+            ]);
+        } elseif ($status === 'FAILED' || $status === 'CANCELLED') {
+            return response()->json([
+                'success' => false,
+                'status' => strtolower($status),
+                'message' => $paymentData->message ?? 'Payment ' . strtolower($status),
+                'redirect_url' => route('clickpesa.cancel', [
+                    'reference' => $orderReference,
+                    'status' => strtolower($status)
+                ])
+            ]);
+        } else {
+            // Still pending
+            return response()->json([
+                'success' => false,
+                'status' => 'pending',
+                'message' => 'Waiting for payment confirmation'
+            ]);
+        }
+    }
+
+    /**
      * Verify ClickPesa transaction
      */
     private function verifyTransaction($reference)
     {
+        // First check if we have cached payment data from AJAX polling
+        $cachedPaymentData = Session::get('clickpesa_payment_data');
+        if ($cachedPaymentData && isset($cachedPaymentData->orderReference) && $cachedPaymentData->orderReference === $reference) {
+            // Clear the cached data
+            Session::forget('clickpesa_payment_data');
+            
+            // Transform to expected format for compatibility
+            return (object) [
+                'status' => strtolower($cachedPaymentData->status ?? 'pending'),
+                'reference' => $cachedPaymentData->orderReference ?? $reference,
+                'amount' => $cachedPaymentData->collectedAmount ?? 0,
+                'message' => $cachedPaymentData->message ?? 'Payment verified',
+                'original_response' => $cachedPaymentData
+            ];
+        }
+
+        // Get access token for API call
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            Log::error('ClickPesa Verify Transaction - Failed to get access token', [
+                'reference' => $reference
+            ]);
+            return "Failed to obtain access token";
+        }
+
+        // Use the correct ClickPesa API endpoint for checking payment status
+        $checkUrl = 'https://api.clickpesa.com/third-parties/payments/' . $reference;
+        
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->endpoint . '/transaction/' . $reference);
+        curl_setopt($ch, CURLOPT_URL, $checkUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $this->apiKey
+            'Authorization: Bearer ' . $accessToken
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -446,9 +584,9 @@ class ClickPesaController extends Controller
             Log::error('ClickPesa Verify Transaction HTTP Error', [
                 'http_code' => $httpCode,
                 'reference' => $reference,
-                'response' => $response // Include the full response in the log for debugging
+                'response' => $response
             ]);
-            return $response; // Return the full response string
+            return $response;
         }
 
         $jsonResponse = json_decode($response);
@@ -460,12 +598,30 @@ class ClickPesaController extends Controller
             return "Error parsing JSON response: $response";
         }
 
+        // API returns an array, get first item
+        $paymentData = is_array($jsonResponse) ? ($jsonResponse[0] ?? null) : $jsonResponse;
+
+        if (!$paymentData) {
+            Log::error('ClickPesa Verify Transaction - No payment data', [
+                'reference' => $reference,
+                'response' => $jsonResponse
+            ]);
+            return "No payment data found";
+        }
+
         Log::debug('ClickPesa Verify Transaction Response', [
             'reference' => $reference,
-            'response' => $jsonResponse
+            'response' => $paymentData
         ]);
 
-        return $jsonResponse;
+        // Transform to expected format for compatibility
+        return (object) [
+            'status' => strtolower($paymentData->status ?? 'pending'),
+            'reference' => $paymentData->orderReference ?? $reference,
+            'amount' => $paymentData->collectedAmount ?? 0,
+            'message' => $paymentData->message ?? 'Payment verified',
+            'original_response' => $paymentData
+        ];
     }
 
     private function processSuccessfulPayment($transToken, $companyRef, $verifyResponse)

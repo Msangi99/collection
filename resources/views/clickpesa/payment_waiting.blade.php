@@ -91,7 +91,7 @@
 
                     <!-- Action Buttons -->
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="window.location.reload()"
+                        <button onclick="if(typeof manualCheckStatus === 'function') manualCheckStatus(); else window.location.reload();"
                             class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors duration-200">
                             <i class="fas fa-sync-alt mr-2"></i>
                             {{ __('all.check_status') }}
@@ -117,27 +117,120 @@
         </div>
     </div>
 
-    <!-- Auto-refresh script to check payment status -->
+    <!-- Payment status polling script -->
     <script>
-        // Auto-refresh every 5 seconds to check if payment is completed
-        let refreshCount = 0;
-        const maxRefresh = 24; // Stop after 2 minutes (24 * 5 seconds)
-
-        const autoRefresh = setInterval(function () {
-            refreshCount++;
-            if (refreshCount >= maxRefresh) {
-                clearInterval(autoRefresh);
-                // Optionally redirect to a timeout page or show a message
-                console.log('Auto-refresh stopped after timeout');
-            } else {
-                // Check payment status via AJAX or just reload
-                window.location.reload();
+        (function() {
+            const orderReference = '{{ $order_id }}';
+            const checkStatusUrl = '{{ route("clickpesa.check-status") }}';
+            
+            let pollCount = 0;
+            const maxPolls = 60; // Stop after 5 minutes (60 * 5 seconds)
+            const pollInterval = 5000; // 5 seconds
+            
+            const statusElement = document.querySelector('.inline-flex.items-center.px-3.py-1');
+            const statusText = statusElement ? statusElement.querySelector('span:last-child') || statusElement : null;
+            const loadingDots = document.querySelectorAll('.animate-bounce');
+            const waitingMessage = document.querySelector('.text-sm.text-gray-600.mt-3');
+            
+            function updateUI(status, message) {
+                if (waitingMessage) {
+                    waitingMessage.textContent = message || 'Checking payment status...';
+                }
             }
-        }, 5000); // 5 seconds
-
-        // Clear interval when user navigates away
-        window.addEventListener('beforeunload', function () {
-            clearInterval(autoRefresh);
-        });
+            
+            function showSuccess() {
+                if (statusElement) {
+                    statusElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                    const dot = statusElement.querySelector('.w-2.h-2');
+                    if (dot) {
+                        dot.className = 'w-2 h-2 bg-green-400 rounded-full mr-2';
+                    }
+                }
+                if (statusText) {
+                    statusText.textContent = 'SUCCESS';
+                }
+                loadingDots.forEach(dot => dot.style.animationPlayState = 'paused');
+            }
+            
+            function showFailed(status) {
+                if (statusElement) {
+                    statusElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800';
+                    const dot = statusElement.querySelector('.w-2.h-2');
+                    if (dot) {
+                        dot.className = 'w-2 h-2 bg-red-400 rounded-full mr-2';
+                    }
+                }
+                if (statusText) {
+                    statusText.textContent = status.toUpperCase();
+                }
+                loadingDots.forEach(dot => dot.style.animationPlayState = 'paused');
+            }
+            
+            function checkPaymentStatus() {
+                pollCount++;
+                
+                if (pollCount > maxPolls) {
+                    clearInterval(pollTimer);
+                    updateUI('timeout', 'Payment check timed out. Please check your phone or try again.');
+                    console.log('Payment status polling stopped after timeout');
+                    return;
+                }
+                
+                fetch(checkStatusUrl + '?order_reference=' + encodeURIComponent(orderReference), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Payment status check:', data);
+                    
+                    if (data.status === 'success') {
+                        clearInterval(pollTimer);
+                        showSuccess();
+                        updateUI('success', 'Payment successful! Redirecting...');
+                        
+                        // Redirect to callback to process the payment
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 1500);
+                        
+                    } else if (data.status === 'failed' || data.status === 'cancelled') {
+                        clearInterval(pollTimer);
+                        showFailed(data.status);
+                        updateUI(data.status, data.message || 'Payment was ' + data.status);
+                        
+                        // Redirect to cancel page
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 2000);
+                        
+                    } else {
+                        // Still pending - continue polling
+                        updateUI('pending', 'Waiting for payment confirmation... (Check ' + pollCount + '/' + maxPolls + ')');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking payment status:', error);
+                    updateUI('error', 'Error checking status. Retrying...');
+                });
+            }
+            
+            // Start polling immediately
+            checkPaymentStatus();
+            
+            // Then poll every 5 seconds
+            const pollTimer = setInterval(checkPaymentStatus, pollInterval);
+            
+            // Clear interval when user navigates away
+            window.addEventListener('beforeunload', function() {
+                clearInterval(pollTimer);
+            });
+            
+            // Also allow manual check
+            window.manualCheckStatus = checkPaymentStatus;
+        })();
     </script>
 @endsection

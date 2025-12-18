@@ -74,6 +74,11 @@ class User extends Authenticatable
         return $this->role === 'local_bus_owner';
     }
 
+    public function isSpecialHire()
+    {
+        return $this->role === 'special_hire';
+    }
+
     /**
      * Get the company associated with the user (if the user is a bus company admin).
      */
@@ -155,6 +160,22 @@ class User extends Authenticatable
     public function temp_wallets()
     {
         return $this->hasOne(TempWallet::class, 'user_id', 'id');
+    }
+
+    /**
+     * Get the coasters owned by the special hire user.
+     */
+    public function coasters()
+    {
+        return $this->hasMany(Coaster::class);
+    }
+
+    /**
+     * Get the special hire orders owned by the user.
+     */
+    public function specialHireOrders()
+    {
+        return $this->hasMany(SpecialHireOrder::class);
     }
 
     /**

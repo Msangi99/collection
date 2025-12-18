@@ -127,6 +127,8 @@ class AuthController extends Controller
                     return redirect()->route('vender.index')->with('success', $successMessage);
                 } else if ($user->role === 'customer') {
                     return redirect()->route('customer.index')->with('success', $successMessage);
+                } else if ($user->role === 'special_hire') {
+                    return redirect()->route('special_hire.index')->with('success', $successMessage);
                 }
 
                 return redirect()->route('home')->with('success', $successMessage);
@@ -179,7 +181,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:bus_campany,admin,vender,customer'], // Fixed typo
+            'role' => ['required', 'in:bus_campany,admin,vender,customer,special_hire'], // Fixed typo
             'campany' => ['required_if:role,bus_campany', 'string', 'max:255', 'nullable', 'min:1'],
             'payment_number' => ['required_if:role,bus_campany', 'string', 'max:255', 'nullable', 'min:1'],
         ]);
@@ -233,6 +235,8 @@ class AuthController extends Controller
                 return redirect()->route('vender.index')->with('success', 'Registration successful.');
             } else if ($user->role === 'customer') {
                 return redirect()->route('customer.index')->with('success', 'Registration successful.');
+            } else if ($user->role === 'special_hire') {
+                return redirect()->route('special_hire.index')->with('success', 'Registration successful.');
             }
 
             return redirect()->route('home')->with('success', 'Registration successful.');

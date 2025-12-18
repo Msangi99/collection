@@ -27,6 +27,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\TwoFactorAuthController; // Add this line
 use App\Http\Controllers\VenderController;
 use App\Http\Controllers\VenderWalletController;
+use App\Http\Controllers\SpecialHireController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -396,6 +397,44 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/edit/{id}', [CustomerController::class, 'edit'])->name('customer.edit');
         Route::post('/edit', [CustomerController::class, 'update'])->name('customer.update');
+    });
+
+    // Special Hire Routes
+    Route::prefix('special-hire')->middleware('role:special_hire')->group(function () {
+        // Dashboard
+        Route::get('/', [SpecialHireController::class, 'index'])->name('special_hire.index');
+
+        // Coasters
+        Route::get('/coasters', [SpecialHireController::class, 'coasters'])->name('special_hire.coasters');
+        Route::get('/coasters/create', [SpecialHireController::class, 'createCoaster'])->name('special_hire.coasters.create');
+        Route::post('/coasters', [SpecialHireController::class, 'storeCoaster'])->name('special_hire.coasters.store');
+        Route::get('/coasters/{id}/edit', [SpecialHireController::class, 'editCoaster'])->name('special_hire.coasters.edit');
+        Route::put('/coasters/{id}', [SpecialHireController::class, 'updateCoaster'])->name('special_hire.coasters.update');
+        Route::delete('/coasters/{id}', [SpecialHireController::class, 'deleteCoaster'])->name('special_hire.coasters.destroy');
+
+        // Live Tracking
+        Route::get('/tracking', [SpecialHireController::class, 'tracking'])->name('special_hire.tracking');
+
+        // Orders
+        Route::get('/orders', [SpecialHireController::class, 'orders'])->name('special_hire.orders');
+        Route::get('/orders/create', [SpecialHireController::class, 'createOrder'])->name('special_hire.orders.create');
+        Route::post('/orders', [SpecialHireController::class, 'storeOrder'])->name('special_hire.orders.store');
+        Route::get('/orders/{id}', [SpecialHireController::class, 'showOrder'])->name('special_hire.orders.show');
+        Route::put('/orders/{id}', [SpecialHireController::class, 'updateOrder'])->name('special_hire.orders.update');
+
+        // Pricing
+        Route::get('/pricing', [SpecialHireController::class, 'pricing'])->name('special_hire.pricing');
+        Route::post('/pricing', [SpecialHireController::class, 'storePricing'])->name('special_hire.pricing.store');
+
+        // Earnings
+        Route::get('/earnings', [SpecialHireController::class, 'earnings'])->name('special_hire.earnings');
+
+        // Profile
+        Route::get('/profile', [SpecialHireController::class, 'profile'])->name('special_hire.profile');
+        Route::post('/profile', [SpecialHireController::class, 'updateProfile'])->name('special_hire.profile.update');
+
+        // Calculate Price (AJAX)
+        Route::post('/calculate-price', [SpecialHireController::class, 'calculatePrice'])->name('special_hire.calculate_price');
     });
 });
 

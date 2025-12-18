@@ -81,9 +81,33 @@ class ClickPesaController extends Controller
             Log::info('ClickPesa USSD-PUSH Initiated Successfully', [
                 'order_id' => $orderDetails['order_id'],
                 'transaction_id' => $transactionId,
+                'order_reference' => $orderRef,
                 'status' => $status,
                 'amount' => $orderDetails['amount']
             ]);
+
+            // CRITICAL: Store the order reference in the booking immediately
+            // This ensures we can find the booking later even if session is lost
+            try {
+                $sessionBooking = session('booking');
+                if ($sessionBooking && isset($sessionBooking->booking_code)) {
+                    Booking::where('booking_code', $sessionBooking->booking_code)
+                        ->update([
+                            'transaction_ref_id' => $orderRef,
+                            'external_ref_id' => $transactionId
+                        ]);
+                    Log::info('ClickPesa: Stored order reference in booking', [
+                        'booking_code' => $sessionBooking->booking_code,
+                        'order_reference' => $orderRef,
+                        'transaction_id' => $transactionId
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('ClickPesa: Could not store order reference in booking', [
+                    'error' => $e->getMessage(),
+                    'order_reference' => $orderRef
+                ]);
+            }
 
             // Redirect to a waiting page where user confirms payment on their phone
             return view('clickpesa.payment_waiting', [
@@ -174,9 +198,9 @@ class ClickPesaController extends Controller
         $reference = $request->get('reference');
         $status = $request->get('status');
 
-        // Handle cancellation
-        if ($status === 'cancelled' || $status === 'failed') {
-            Log::info('ClickPesa Transaction Canceled/Failed', [
+        // Handle explicit cancellation from user
+        if ($status === 'cancelled') {
+            Log::info('ClickPesa Transaction Canceled by User', [
                 'reference' => $reference,
                 'status' => $status,
                 'query_params' => $request->all()
@@ -185,15 +209,39 @@ class ClickPesaController extends Controller
             return view('clickpesa.cancel', [
                 'reference' => $reference,
                 'status' => $status,
-                'message' => 'Transaction was ' . $status
+                'message' => 'Transaction was cancelled by user'
             ]);
         }
 
-        // Verify transaction if reference is present
+        // Verify transaction if reference is present - ALWAYS verify even if status says failed
+        // This is critical because money may have been deducted even if status shows failed
         if ($reference) {
-            $verifyResponse = $this->verifyTransaction($reference);
+            // Retry verification up to 3 times for transient errors
+            $verifyResponse = null;
+            $lastError = null;
+            
+            for ($attempt = 1; $attempt <= 3; $attempt++) {
+                $verifyResponse = $this->verifyTransaction($reference);
+                
+                // Check if we got a valid object response (not a string error)
+                if (is_object($verifyResponse) && isset($verifyResponse->status)) {
+                    break; // Got valid response
+                }
+                
+                $lastError = is_string($verifyResponse) ? $verifyResponse : 'Unknown error';
+                Log::warning('ClickPesa Verification Attempt Failed', [
+                    'reference' => $reference,
+                    'attempt' => $attempt,
+                    'error' => $lastError
+                ]);
+                
+                if ($attempt < 3) {
+                    sleep(2); // Wait 2 seconds before retry
+                }
+            }
 
-            if ($verifyResponse && (string) $verifyResponse->status == 'success') {
+            // Check if verifyResponse is a valid object with status property
+            if (is_object($verifyResponse) && isset($verifyResponse->status) && strtolower($verifyResponse->status) == 'success') {
                 Log::info('ClickPesa Payment Verification Successful', [
                     'reference' => $reference,
                     'response' => $verifyResponse
@@ -244,31 +292,59 @@ class ClickPesaController extends Controller
                 }
 
             } else {
-                $errorMessage = isset($verifyResponse->message)
-                    ? (string) $verifyResponse->message
-                    : (is_string($verifyResponse) ? $verifyResponse : "Unknown verification error");
+                // Handle verification failure - but check if it's a real failure or just API error
+                $errorMessage = '';
+                $actualStatus = '';
+                
+                if (is_object($verifyResponse) && isset($verifyResponse->status)) {
+                    $actualStatus = strtolower($verifyResponse->status);
+                    $errorMessage = $verifyResponse->message ?? 'Payment ' . $actualStatus;
+                } elseif (is_string($verifyResponse)) {
+                    // API returned error - this is critical! Money may have been deducted
+                    $errorMessage = $verifyResponse;
+                    $actualStatus = 'verification_error';
+                } else {
+                    $errorMessage = 'Unknown verification error';
+                    $actualStatus = 'unknown_error';
+                }
 
-                Log::error('ClickPesa Payment Verification Failed', [
+                Log::error('ClickPesa Payment Verification Issue', [
                     'reference' => $reference,
+                    'actual_status' => $actualStatus,
                     'error' => $errorMessage,
-                    'response' => $verifyResponse
+                    'response_type' => gettype($verifyResponse),
+                    'response' => $verifyResponse,
+                    'request_status' => $status
                 ]);
 
-                return [
+                // If status was 'success' from redirect but verification failed, this is a CRITICAL issue
+                // Money was likely deducted but we couldn't verify - show error page with support info
+                if ($status === 'success' || $actualStatus === 'verification_error') {
+                    return view('clickpesa.verification_error', [
+                        'reference' => $reference,
+                        'status' => $actualStatus,
+                        'message' => 'Payment verification could not be completed. If money was deducted from your account, please contact support with reference: ' . $reference,
+                        'error' => $errorMessage
+                    ]);
+                }
+
+                // For actual failed/pending payments
+                return view('clickpesa.cancel', [
                     'reference' => $reference,
-                    'errorMessage' => $errorMessage,
-                    'response' => $verifyResponse
-                ];
+                    'status' => $actualStatus,
+                    'message' => $errorMessage
+                ]);
             }
         } else {
             Log::warning('No Reference in ClickPesa Callback', [
                 'query_params' => $request->all()
             ]);
 
-            return [
-                'errorMessage' => 'No transaction reference provided in callback',
-                'queryParams' => $request->all()
-            ];
+            return view('clickpesa.cancel', [
+                'reference' => 'N/A',
+                'status' => 'error',
+                'message' => 'No transaction reference provided. Please contact support if payment was deducted.'
+            ]);
         }
     }
 
@@ -445,11 +521,15 @@ class ClickPesaController extends Controller
         // Get access token
         $accessToken = $this->getAccessToken();
         if (!$accessToken) {
+            Log::warning('ClickPesa Status Check - Token Error', [
+                'order_reference' => $orderReference
+            ]);
+            // Don't return error, return pending so client retries
             return response()->json([
                 'success' => false,
-                'status' => 'error',
-                'message' => 'Failed to obtain access token'
-            ], 500);
+                'status' => 'pending',
+                'message' => 'Checking payment status...'
+            ]);
         }
 
         // Call ClickPesa API to check payment status
@@ -458,6 +538,8 @@ class ClickPesaController extends Controller
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $checkUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15); // Set timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $accessToken
         ]);
@@ -470,25 +552,36 @@ class ClickPesaController extends Controller
         Log::debug('ClickPesa Payment Status Check', [
             'order_reference' => $orderReference,
             'http_code' => $httpCode,
-            'response' => $response
+            'response' => $response,
+            'curl_error' => $curlError ?: 'none'
         ]);
 
-        if ($httpCode != 200) {
+        // Handle network/API errors - return pending so client retries
+        if ($curlError || $httpCode != 200) {
+            Log::warning('ClickPesa Status Check API Error', [
+                'order_reference' => $orderReference,
+                'http_code' => $httpCode,
+                'curl_error' => $curlError
+            ]);
             return response()->json([
                 'success' => false,
                 'status' => 'pending',
-                'message' => 'Payment still pending or error checking status'
+                'message' => 'Checking payment status, please wait...'
             ]);
         }
 
         $jsonResponse = json_decode($response);
         
         if ($jsonResponse === null) {
+            Log::warning('ClickPesa Status Check Parse Error', [
+                'order_reference' => $orderReference,
+                'response' => $response
+            ]);
             return response()->json([
                 'success' => false,
-                'status' => 'error',
-                'message' => 'Error parsing response'
-            ], 500);
+                'status' => 'pending',
+                'message' => 'Checking payment status...'
+            ]);
         }
 
         // API returns an array, get first item
@@ -498,15 +591,38 @@ class ClickPesaController extends Controller
             return response()->json([
                 'success' => false,
                 'status' => 'pending',
-                'message' => 'No payment data found'
+                'message' => 'Waiting for payment confirmation'
             ]);
         }
 
         $status = strtoupper($paymentData->status ?? 'PENDING');
         
-        if ($status === 'SUCCESS') {
+        Log::info('ClickPesa Payment Status', [
+            'order_reference' => $orderReference,
+            'status' => $status,
+            'collected_amount' => $paymentData->collectedAmount ?? 0
+        ]);
+        
+        if ($status === 'SUCCESS' || $status === 'SUCCESSFUL' || $status === 'COMPLETED') {
             // Payment successful - store payment data in session for callback processing
             Session::put('clickpesa_payment_data', $paymentData);
+            
+            // Also store in database as backup (in case session is lost)
+            try {
+                $booking = session('booking');
+                if ($booking && isset($booking->booking_code)) {
+                    Booking::where('booking_code', $booking->booking_code)
+                        ->update([
+                            'transaction_ref_id' => $orderReference,
+                            'external_ref_id' => $paymentData->id ?? $orderReference
+                        ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Could not update booking with transaction ref', [
+                    'error' => $e->getMessage(),
+                    'order_reference' => $orderReference
+                ]);
+            }
             
             return response()->json([
                 'success' => true,
@@ -517,7 +633,7 @@ class ClickPesaController extends Controller
                     'status' => 'success'
                 ])
             ]);
-        } elseif ($status === 'FAILED' || $status === 'CANCELLED') {
+        } elseif ($status === 'FAILED' || $status === 'CANCELLED' || $status === 'REJECTED') {
             return response()->json([
                 'success' => false,
                 'status' => strtolower($status),
@@ -528,7 +644,7 @@ class ClickPesaController extends Controller
                 ])
             ]);
         } else {
-            // Still pending
+            // Still pending (INITIATED, PENDING, PROCESSING, etc.)
             return response()->json([
                 'success' => false,
                 'status' => 'pending',
@@ -539,6 +655,7 @@ class ClickPesaController extends Controller
 
     /**
      * Verify ClickPesa transaction
+     * Returns object with 'status' property on success, or error object on failure
      */
     private function verifyTransaction($reference)
     {
@@ -547,6 +664,11 @@ class ClickPesaController extends Controller
         if ($cachedPaymentData && isset($cachedPaymentData->orderReference) && $cachedPaymentData->orderReference === $reference) {
             // Clear the cached data
             Session::forget('clickpesa_payment_data');
+            
+            Log::info('ClickPesa Using Cached Payment Data', [
+                'reference' => $reference,
+                'status' => $cachedPaymentData->status ?? 'unknown'
+            ]);
             
             // Transform to expected format for compatibility
             return (object) [
@@ -564,7 +686,14 @@ class ClickPesaController extends Controller
             Log::error('ClickPesa Verify Transaction - Failed to get access token', [
                 'reference' => $reference
             ]);
-            return "Failed to obtain access token";
+            // Return error object instead of string for consistent handling
+            return (object) [
+                'status' => 'api_error',
+                'reference' => $reference,
+                'amount' => 0,
+                'message' => 'Failed to obtain access token',
+                'error_type' => 'token_error'
+            ];
         }
 
         // Use the correct ClickPesa API endpoint for checking payment status
@@ -573,12 +702,29 @@ class ClickPesaController extends Controller
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $checkUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Set 30 second timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // Connection timeout
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $accessToken
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
+
+        if ($curlError) {
+            Log::error('ClickPesa Verify Transaction CURL Error', [
+                'reference' => $reference,
+                'curl_error' => $curlError
+            ]);
+            return (object) [
+                'status' => 'api_error',
+                'reference' => $reference,
+                'amount' => 0,
+                'message' => 'Network error: ' . $curlError,
+                'error_type' => 'curl_error'
+            ];
+        }
 
         if ($httpCode != 200) {
             Log::error('ClickPesa Verify Transaction HTTP Error', [
@@ -586,7 +732,22 @@ class ClickPesaController extends Controller
                 'reference' => $reference,
                 'response' => $response
             ]);
-            return $response;
+            
+            // Try to parse error response for more info
+            $errorData = json_decode($response);
+            $errorMessage = 'HTTP Error ' . $httpCode;
+            if ($errorData && isset($errorData->message)) {
+                $errorMessage = $errorData->message;
+            }
+            
+            return (object) [
+                'status' => 'api_error',
+                'reference' => $reference,
+                'amount' => 0,
+                'message' => $errorMessage,
+                'http_code' => $httpCode,
+                'error_type' => 'http_error'
+            ];
         }
 
         $jsonResponse = json_decode($response);
@@ -595,7 +756,13 @@ class ClickPesaController extends Controller
                 'response' => $response,
                 'reference' => $reference
             ]);
-            return "Error parsing JSON response: $response";
+            return (object) [
+                'status' => 'api_error',
+                'reference' => $reference,
+                'amount' => 0,
+                'message' => 'Error parsing API response',
+                'error_type' => 'parse_error'
+            ];
         }
 
         // API returns an array, get first item
@@ -606,12 +773,19 @@ class ClickPesaController extends Controller
                 'reference' => $reference,
                 'response' => $jsonResponse
             ]);
-            return "No payment data found";
+            return (object) [
+                'status' => 'not_found',
+                'reference' => $reference,
+                'amount' => 0,
+                'message' => 'No payment data found for this reference',
+                'error_type' => 'not_found'
+            ];
         }
 
-        Log::debug('ClickPesa Verify Transaction Response', [
+        Log::info('ClickPesa Verify Transaction Response', [
             'reference' => $reference,
-            'response' => $paymentData
+            'api_status' => $paymentData->status ?? 'unknown',
+            'collected_amount' => $paymentData->collectedAmount ?? 0
         ]);
 
         // Transform to expected format for compatibility
@@ -661,8 +835,51 @@ class ClickPesaController extends Controller
             }
         }
 
-        $code = session('booking')->booking_code;
-        $booking = Booking::where('booking_code', $code)->first();
+        // Try to get booking from session first
+        $booking = null;
+        $sessionBooking = session('booking');
+        
+        if ($sessionBooking && isset($sessionBooking->booking_code)) {
+            $code = $sessionBooking->booking_code;
+            $booking = Booking::where('booking_code', $code)->first();
+            Log::info('ClickPesa: Found booking from session', ['booking_code' => $code]);
+        }
+        
+        // If session was lost, try to find booking by transaction reference
+        if (!$booking && $transToken) {
+            // Try by transaction_ref_id first
+            $booking = Booking::where('transaction_ref_id', $transToken)->first();
+            
+            if (!$booking) {
+                // Try by external_ref_id
+                $booking = Booking::where('external_ref_id', $transToken)->first();
+            }
+            
+            if ($booking) {
+                Log::info('ClickPesa: Found booking by transaction reference', [
+                    'transaction_ref' => $transToken,
+                    'booking_code' => $booking->booking_code
+                ]);
+            }
+        }
+        
+        // If still no booking and we have companyRef, try that
+        if (!$booking && $companyRef) {
+            // companyRef might be the booking_code (sanitized)
+            $booking = Booking::where('booking_code', $companyRef)->first();
+            
+            if (!$booking) {
+                // Try with wildcard in case it was sanitized
+                $booking = Booking::where('booking_code', 'LIKE', '%' . $companyRef . '%')->first();
+            }
+            
+            if ($booking) {
+                Log::info('ClickPesa: Found booking by company reference', [
+                    'company_ref' => $companyRef,
+                    'booking_code' => $booking->booking_code
+                ]);
+            }
+        }
 
         if (!$booking) {
             Log::error('Booking not found', ['transaction_ref_id' => $companyRef]);
